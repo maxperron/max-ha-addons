@@ -1,6 +1,6 @@
 name: "Family Expenses Tracker"
 description: "A simple family expenses tracker addon."
-version: "0.4.0"
+version: "0.4.1"
 slug: "family_expenses_tracker"
 init: false
 arch:

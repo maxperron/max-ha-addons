@@ -8,7 +8,7 @@ RUN \
     python3 \
     py3-pip
 
-RUN pip install --no-cache-dir --break-system-packages fastapi uvicorn sqlmodel aiofiles
+RUN pip install --no-cache-dir --break-system-packages fastapi uvicorn sqlmodel aiofiles python-multipart
 
 WORKDIR /app
 

@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.4.1
+- **Fix**: Added missing `python-multipart` dependency required for file uploads.
+
 ## 0.4.0
 - **Major UI Refactor**: Introduced sidebar navigation and dedicated "Settings" view.
 - **Transactions Management**: Added full support for creating, listing, and filtering transactions.
