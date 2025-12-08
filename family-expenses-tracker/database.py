@@ -9,9 +9,24 @@ DATABASE_URL = f"sqlite:///{os.path.join(DATA_DIR, DB_NAME)}"
 # check_same_thread=False is needed for SQLite with FastAPI multi-threading
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 
+from sqlalchemy import text
+from sqlalchemy.exc import OperationalError
+
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
+    migrate_db()
     seed_db()
+
+def migrate_db():
+    with Session(engine) as session:
+        # Migration 1: Add parent_id to category
+        try:
+            session.exec(text("ALTER TABLE category ADD COLUMN parent_id INTEGER"))
+            session.commit()
+            print("Migrated: Added parent_id to category")
+        except OperationalError:
+            # Column likely already exists
+            pass
 
 def seed_db():
     from models import Category

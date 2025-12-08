@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1
+
+- Fixed database migration issue (automatically adds missing `parent_id` column to existing databases).
+
 ## 0.3.0
 
 - Added **Subcategories** support (nested categories).
