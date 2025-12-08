@@ -8,13 +8,12 @@ RUN \
     python3 \
     py3-pip
 
-RUN pip install --no-cache-dir --break-system-packages fastapi uvicorn sqlmodel
+RUN pip install --no-cache-dir --break-system-packages fastapi uvicorn sqlmodel aiofiles
 
 WORKDIR /app
 
 # Copy data for add-on
-COPY run.py /app/run.py
-COPY run.sh /app/run.sh
+COPY . /app/
 
 RUN chmod a+x /app/run.sh
 

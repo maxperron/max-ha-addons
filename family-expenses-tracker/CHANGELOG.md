@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.4
+
+- Fixed `ModuleNotFoundError` by including all application files.
+- Added Management UI for Family Members and Accounts.
+
 ## 0.1.3
 
 - Added `sqlmodel` database support.

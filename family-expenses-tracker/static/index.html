@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Expenses Tracker</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+
+<body class="p-8">
+
+    <div class="max-w-4xl mx-auto" x-data="appData()">
+
+        <header class="flex justify-between items-center mb-12 animate-in">
+            <div>
+                <h1
+                    class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+                    Family Expenses Tracker
+                </h1>
+                <p class="text-slate-400 mt-2">Manage your family finances with ease.</p>
+            </div>
+            <div class="text-sm text-slate-500">v0.1.4</div>
+        </header>
+
+        <!-- Family Members Section -->
+        <section class="mb-12 animate-in" style="animation-delay: 0.1s;">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-400" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    Family Members
+                </h2>
+                <div class="flex gap-2">
+                    <input type="text" x-model="newUserName" placeholder="Name" class="px-4 py-2 rounded-lg text-sm"
+                        @keydown.enter="createUser">
+                    <button @click="createUser" class="btn-primary px-4 py-2 rounded-lg text-sm font-medium">Add
+                        Member</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <template x-for="user in users" :key="user.id">
+                    <div class="glass-panel p-4 flex justify-between items-center group">
+                        <span class="font-medium" x-text="user.name"></span>
+                        <button @click="deleteUser(user.id)"
+                            class="text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </template>
+                <div x-show="users.length === 0" class="col-span-full text-center text-slate-500 py-8">
+                    No family members yet. Add one above!
+                </div>
+            </div>
+        </section>
+
+        <!-- Accounts Section -->
+        <section class="mb-12 animate-in" style="animation-delay: 0.2s;">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-400" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                    Accounts
+                </h2>
+                <div class="flex gap-2">
+                    <input type="text" x-model="newAccountName" placeholder="Account Name"
+                        class="px-4 py-2 rounded-lg text-sm w-40" @keydown.enter="createAccount">
+                    <select x-model="newAccountUserId" class="px-4 py-2 rounded-lg text-sm w-40">
+                        <option value="">Select Owner</option>
+                        <template x-for="user in users" :key="user.id">
+                            <option :value="user.id" x-text="user.name"></option>
+                        </template>
+                    </select>
+                    <button @click="createAccount" class="btn-primary px-4 py-2 rounded-lg text-sm font-medium">Add
+                        Account</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <template x-for="account in accounts" :key="account.id">
+                    <div class="glass-panel p-4 flex flex-col gap-2 group">
+                        <div class="flex justify-between items-start">
+                            <span class="font-medium text-lg" x-text="account.name"></span>
+                            <button @click="deleteAccount(account.id)"
+                                class="text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs text-slate-400 bg-white/5 rounded px-2 py-1 w-fit">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            <span x-text="account.user_name || 'Unassigned'"></span>
+                        </div>
+                    </div>
+                </template>
+                <div x-show="accounts.length === 0" class="col-span-full text-center text-slate-500 py-8">
+                    No accounts yet. Add one above!
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        function appData() {
+            return {
+                users: [],
+                accounts: [],
+                newUserName: '',
+                newAccountName: '',
+                newAccountUserId: '',
+
+                async init() {
+                    await this.fetchUsers();
+                    await this.fetchAccounts();
+                },
+
+                async fetchUsers() {
+                    const res = await fetch('/users/');
+                    this.users = await res.json();
+                },
+
+                async fetchAccounts() {
+                    const res = await fetch('/accounts/');
+                    this.accounts = await res.json();
+                },
+
+                async createUser() {
+                    if (!this.newUserName) return;
+                    await fetch('/users/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: this.newUserName })
+                    });
+                    this.newUserName = '';
+                    this.fetchUsers();
+                },
+
+                async deleteUser(id) {
+                    if (!confirm('Are you sure?')) return;
+                    await fetch(`/users/${id}`, { method: 'DELETE' });
+                    this.fetchUsers();
+                    this.fetchAccounts(); // Account owner names typically change/nullify
+                },
+
+                async createAccount() {
+                    if (!this.newAccountName) return;
+                    const payload = { name: this.newAccountName };
+                    if (this.newAccountUserId) payload.user_id = parseInt(this.newAccountUserId);
+
+                    await fetch('/accounts/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    this.newAccountName = '';
+                    this.newAccountUserId = '';
+                    this.fetchAccounts();
+                },
+
+                async deleteAccount(id) {
+                    if (!confirm('Are you sure?')) return;
+                    await fetch(`/accounts/${id}`, { method: 'DELETE' });
+                    this.fetchAccounts();
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

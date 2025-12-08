@@ -12,14 +12,23 @@ async def lifespan(app: FastAPI):
     yield
     # Shutdown
 
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
+
+# ... imports ...
+
 app = FastAPI(lifespan=lifespan)
 
 app.include_router(users.router)
 app.include_router(accounts.router)
 
+# Mount static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 @app.get("/")
 def read_root():
-    return {"message": "Hello World from Family Expenses Tracker Web UI!"}
+    return FileResponse('static/index.html')
 
 if __name__ == "__main__":
     # Ingress in Home Assistant usually forwards to the container on the ingress_port.
