@@ -8,9 +8,14 @@ RUN \
     python3 \
     py3-pip
 
+RUN pip install --no-cache-dir fastapi uvicorn
+
 WORKDIR /app
 
 # Copy data for add-on
 COPY run.py /app/run.py
+COPY run.sh /app/run.sh
 
-CMD [ "python3", "/app/run.py" ]
+RUN chmod a+x /app/run.sh
+
+CMD [ "/app/run.sh" ]

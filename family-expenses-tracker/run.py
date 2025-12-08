@@ -1,10 +1,14 @@
-import time
+from fastapi import FastAPI
+import uvicorn
+import os
 
-print("Hello World from Family Expenses Tracker!")
+app = FastAPI()
 
-# Keep the container running for a bit so we can see the logs if needed, 
-# or just exit if that's preferred for a simple test. 
-# For an addon, it's usually a service, so let's loop.
-while True:
-    time.sleep(60)
-    print("Heartbeat...")
+@app.get("/")
+def read_root():
+    return {"message": "Hello World from Family Expenses Tracker Web UI!"}
+
+if __name__ == "__main__":
+    # Ingress in Home Assistant usually forwards to the container on the ingress_port.
+    # We bind to 0.0.0.0 to be accessible from outside the container.
+    uvicorn.run(app, host="0.0.0.0", port=8000)

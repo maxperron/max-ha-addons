@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1
+
+- Switched to `run.sh` for reliable startup.
+- Fixed 503 Service Unavailable error.
+
 ## 0.1.0
 
 - Added Web UI with FastAPI.
