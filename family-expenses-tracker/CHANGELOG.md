@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.7
+
+- Enhanced visual aesthetics with a premium radial gradient background.
+
 ## 0.1.6
 
 - Aggressively fixed UI contrast using explicit Tailwind classes for dark mode inputs.

@@ -1,7 +1,11 @@
 /* Global Styles */
 body {
     background-color: #0f172a;
-    /* Slate 900 */
+    /* Fallback */
+    background-image: radial-gradient(circle at 10% 20%, rgb(30, 41, 59) 0%, rgb(15, 23, 42) 90%);
+    /* Deep slate gradient */
+    background-attachment: fixed;
+    /* Cover full height */
     color: #f8fafc;
     /* Slate 50 */
     font-family: 'Inter', sans-serif;
