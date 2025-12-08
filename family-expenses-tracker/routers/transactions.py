@@ -99,5 +99,6 @@ def _populate_transaction_read(transaction: Transaction, session: Session) -> Tr
         user_id=transaction.user_id,
         category_name=category_name,
         account_name=account_name,
-        user_name=user_name
+        user_name=user_name,
+        is_family=transaction.is_family
     )

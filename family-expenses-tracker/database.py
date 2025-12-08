@@ -25,7 +25,22 @@ def migrate_db():
             session.commit()
             print("Migrated: Added parent_id to category")
         except OperationalError:
-            # Column likely already exists
+            pass
+
+        # Migration 2: Add is_shared to account
+        try:
+            session.exec(text("ALTER TABLE account ADD COLUMN is_shared BOOLEAN DEFAULT 0"))
+            session.commit()
+            print("Migrated: Added is_shared to account")
+        except OperationalError:
+            pass
+
+        # Migration 3: Add is_family to transaction
+        try:
+            session.exec(text("ALTER TABLE 'transaction' ADD COLUMN is_family BOOLEAN DEFAULT 0"))
+            session.commit()
+            print("Migrated: Added is_family to transaction")
+        except OperationalError:
             pass
 
 def seed_db():

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.0
+- **Family Tagging**: Identify transactions as "Family" expenses with a simple toggle in the table.
+- **Shared Accounts**: Mark accounts as "Shared" to automatically tag all imported transactions as Family expenses.
+- **Bulk Family Tagging**: Select multiple transactions to mark them as Family or Personal in one go.
+
 ## 0.4.4
 - **Searchable Inline Edit**: Replaced the native category select in the table with a powerful searchable dropdown.
 - **Improved Rule Logic**: Rules are now checked for duplicates before creation.

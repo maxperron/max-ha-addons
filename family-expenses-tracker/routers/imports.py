@@ -182,7 +182,8 @@ async def upload_csv(
                 amount=amount,
                 description=raw_desc,
                 account_id=account_id,
-                category_id=final_category_id
+                category_id=final_category_id,
+                is_family=account.is_shared  # Auto-tag if account is shared
             )
             session.add(transaction)
             transactions_created += 1

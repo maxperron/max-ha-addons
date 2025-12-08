@@ -21,6 +21,7 @@ class UserRead(UserBase):
 class AccountBase(SQLModel):
     name: str
     user_id: Optional[int] = Field(default=None, foreign_key="user.id")
+    is_shared: bool = False
 
 class Account(AccountBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -60,6 +61,7 @@ class TransactionBase(SQLModel):
     category_id: int = Field(foreign_key="category.id")
     account_id: int = Field(foreign_key="account.id")
     user_id: Optional[int] = Field(default=None, foreign_key="user.id") # Optional: who made the transaction
+    is_family: bool = False
 
 class Transaction(TransactionBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
