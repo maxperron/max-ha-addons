@@ -20,7 +20,7 @@
             <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
                 Family Expenses
             </h1>
-            <div class="text-xs text-slate-500 mt-1">v0.4.3</div>
+            <div class="text-xs text-slate-500 mt-1">v0.4.4</div>
         </div>
 
         <nav class="flex-1 px-4 py-4 space-y-2">
@@ -202,6 +202,42 @@
                 </div>
             </div>
 
+            <!-- Inline Category Editor Dropdown (Global) -->
+            <div x-show="inlineEdit.show" @click.outside="closeInlineEdit"
+                :style="`position: absolute; top: ${inlineEdit.top}px; left: ${inlineEdit.left}px; width: ${inlineEdit.width}px;`"
+                class="fixed z-[100] w-64 bg-slate-800 border border-slate-700 rounded-lg shadow-xl flex flex-col animate-in fade-in zoom-in-95 duration-100"
+                x-transition>
+
+                <!-- Search -->
+                <div class="p-2 border-b border-slate-700">
+                    <input type="text" x-model="inlineEdit.search" @keydown.escape="closeInlineEdit"
+                        x-ref="inlineSearchInput" placeholder="Search category..."
+                        class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500">
+                </div>
+
+                <!-- List -->
+                <div class="max-h-60 overflow-y-auto flex-1 p-1">
+                    <!-- Better Loop using flattenedCategories for hierarchy when not searching -->
+                    <template
+                        x-for="c in (inlineEdit.search ? flattenedCategories.filter(x => x.name.toLowerCase().includes(inlineEdit.search.toLowerCase())) : flattenedCategories)"
+                        :key="c.id">
+                        <button @click="confirmInlineEdit(c.id)"
+                            class="w-full text-left px-2 py-1.5 rounded hover:bg-blue-600/50 text-xs text-slate-200 flex items-center gap-2"
+                            :class="{'bg-blue-600/20 text-blue-300': inlineEdit.currentCategoryId == c.id}">
+                            <div class="flex items-center">
+                                <span
+                                    x-html="!inlineEdit.search && c.depth > 0 ? '&nbsp;&nbsp;'.repeat(c.depth*3) : ''"></span>
+                                <span x-text="c.icon || '🏷️'" class="mr-1"></span>
+                                <span x-text="c.name"></span>
+                            </div>
+                        </button>
+                    </template>
+
+                    <div x-show="!flattenedCategories.length" class="p-2 text-xs text-slate-500 text-center">No
+                        categories</div>
+                </div>
+            </div>
+
             <!-- Table -->
             <div class="glass-panel overflow-hidden">
                 <table class="w-full text-left text-sm">
@@ -231,15 +267,22 @@
                                 <td class="p-4 whitespace-nowrap text-slate-300" x-text="t.date"></td>
                                 <td class="p-4 font-medium text-white" x-text="t.description"></td>
                                 <td class="p-4">
-                                    <!-- Inline Category Edit -->
-                                    <select @change="updateTransactionCategory(t.id, $event.target.value)"
-                                        class="bg-slate-800/50 border border-slate-700/50 rounded px-2 py-1 text-xs text-slate-300 focus:bg-slate-800 focus:border-blue-500 focus:outline-none w-full max-w-[200px]">
-                                        <template x-for="c in flattenedCategories" :key="c.id">
-                                            <option :value="c.id" :selected="c.id == t.category_id"
-                                                x-text="(c.depth > 0 ? '\u00A0\u00A0'.repeat(c.depth) + '↳ ' : '') + c.name">
-                                            </option>
-                                        </template>
-                                    </select>
+                                    <!-- Inline Category Trigger -->
+                                    <div @click="openInlineEdit(t, $el)"
+                                        class="cursor-pointer hover:bg-slate-700/50 rounded px-2 py-1 flex items-center justify-between group/edit border border-transparent hover:border-slate-600 transition-all">
+                                        <div class="flex items-center gap-2">
+                                            <span
+                                                x-text="flattenedCategories.find(c => c.id == t.category_id)?.icon || '🏷️'"></span>
+                                            <span x-text="t.category_name || 'Uncategorized'"
+                                                class="text-xs text-slate-300"></span>
+                                        </div>
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                            class="h-3 w-3 text-slate-500 opacity-0 group-hover/edit:opacity-100"
+                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                        </svg>
+                                    </div>
                                 </td>
                                 <td class="p-4 text-slate-400 text-xs" x-text="t.account_name"></td>
                                 <td class="p-4 text-right font-mono font-medium text-emerald-400"
@@ -764,6 +807,43 @@
                 this.fetchTransactions();
             },
 
+            inlineEdit: {
+                show: false,
+                top: 0,
+                left: 0,
+                txId: null,
+                search: '',
+                currentCategoryId: null
+            },
+
+            openInlineEdit(transaction, el) {
+                const rect = el.getBoundingClientRect();
+                this.inlineEdit.top = rect.bottom + window.scrollY + 5;
+                this.inlineEdit.left = rect.left + window.scrollX;
+                this.inlineEdit.txId = transaction.id;
+                this.inlineEdit.currentCategoryId = transaction.category_id;
+                this.inlineEdit.search = '';
+                this.inlineEdit.show = true;
+
+                this.$nextTick(() => {
+                    this.$refs.inlineSearchInput.focus();
+                });
+            },
+
+            closeInlineEdit() {
+                this.inlineEdit.show = false;
+                this.inlineEdit.txId = null;
+            },
+
+            async confirmInlineEdit(categoryId) {
+                if (!this.inlineEdit.txId) return;
+
+                // Update transaction
+                await this.updateTransactionCategory(this.inlineEdit.txId, categoryId);
+
+                this.closeInlineEdit();
+            },
+
             async deleteTransaction(id) {
                 if (!confirm("Delete transaction?")) return;
                 await fetch(`transactions/${id}`, { method: 'DELETE' });
@@ -787,19 +867,28 @@
 
                 if (!transaction || !category) return;
 
+                // Check if rule already exists perfectly
+                const existingRule = this.importRules.find(r => r.pattern === transaction.description);
+                if (existingRule && existingRule.category_id === categoryId) return; // Already exists
+
                 // Simple prompt
-                if (confirm(`Do you want to create an auto-categorization rule for "${transaction.description}" -> "${category.name}"?`)) {
+                if (confirm(`Do you want to create an auto-categorization rule for "${transaction.description}" -> "${category.name}"?\n\nThis will also apply to all existing matching transactions.`)) {
                     // Create rule
-                    await fetch('imports/rules/', {
+                    const res = await fetch('imports/rules/', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            pattern: transaction.description,
+                            pattern: transaction.description, // using exact description as pattern
                             category_id: categoryId
                         })
                     });
-                    this.fetchImportRules(); // Refresh rules
-                    alert("Rule created!");
+
+                    if (res.ok) {
+                        this.fetchImportRules(); // Refresh rules
+                        // Also refresh transactions because backend might have applied rule to others!
+                        this.fetchTransactions();
+                        // alert("Rule created and applied!"); // Optional, maybe too noisy
+                    }
                 }
             },
 

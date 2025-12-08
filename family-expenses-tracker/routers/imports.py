@@ -12,10 +12,48 @@ router = APIRouter(prefix="/imports", tags=["imports"])
 
 @router.post("/rules/", response_model=ImportRuleRead)
 def create_rule(rule: ImportRuleCreate, session: Session = Depends(get_session)):
-    db_rule = ImportRule.from_orm(rule)
-    session.add(db_rule)
-    session.commit()
-    session.refresh(db_rule)
+    # 1. Check for duplicates
+    existing_rule = session.exec(select(ImportRule).where(ImportRule.pattern == rule.pattern)).first()
+    if existing_rule:
+        # If it exists, maybe update it? Or just return it. 
+        # User goal: "Dont create duplicate rules"
+        # Let's return the existing one.
+        db_rule = existing_rule
+        # If category changed, update it
+        if db_rule.category_id != rule.category_id:
+            db_rule.category_id = rule.category_id
+            session.add(db_rule)
+            session.commit()
+            session.refresh(db_rule)
+    else:
+        db_rule = ImportRule.from_orm(rule)
+        session.add(db_rule)
+        session.commit()
+        session.refresh(db_rule)
+    
+    # 2. Retroactive Application
+    # Find transactions with matching description (case-insensitive substring match)
+    # Note: Using rule.pattern as substring.
+    # We should probably use the same logic as _apply_rules but in SQL/Python.
+    # SQLite LIKE is case-insensitive usually, but let's be safe.
+    # The _apply_rules does: if rule.pattern.lower() in description.lower()
+    
+    # We want to find transactions where description contains pattern
+    statement = select(Transaction).where(Transaction.description.contains(db_rule.pattern))
+    matching_txs = session.exec(statement).all()
+    
+    count = 0
+    for tx in matching_txs:
+        # Only update if different? 
+        # User said "apply the rule". So overwrite.
+        if tx.category_id != db_rule.category_id:
+            tx.category_id = db_rule.category_id
+            session.add(tx)
+            count += 1
+            
+    if count > 0:
+        session.commit()
+
     return _populate_rule_read(db_rule, session)
 
 @router.get("/rules/", response_model=List[ImportRuleRead])

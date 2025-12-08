@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.4
+- **Searchable Inline Edit**: Replaced the native category select in the table with a powerful searchable dropdown.
+- **Improved Rule Logic**: Rules are now checked for duplicates before creation.
+- **Auto-Apply Rules**: Creating a new rule retroactively applies it to all matching past transactions.
+- **Smart Prompts**: Better prompts handling rule creation when editing categories inline.
+
 ## 0.4.3
 - **Bulk Actions**: Added ability to delete multiple transactions at once.
 - **UI Improvements**: Category dropdowns (Filter and Inline) now showing full hierarchy.
