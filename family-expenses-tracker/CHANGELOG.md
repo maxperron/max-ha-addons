@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.5
+
+- Improved UI contrast and dark mode support (Fix "black on black" issues).
+
 ## 0.1.4
 
 - Fixed `ModuleNotFoundError` by including all application files.

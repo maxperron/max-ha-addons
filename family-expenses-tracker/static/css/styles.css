@@ -5,16 +5,17 @@ body {
     color: #f8fafc;
     /* Slate 50 */
     font-family: 'Inter', sans-serif;
+    color-scheme: dark;
 }
 
 /* Glassmorphism Panel */
 .glass-panel {
-    background: rgba(255, 255, 255, 0.05);
-    /* White with low opacity */
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: rgba(30, 41, 59, 0.7);
+    /* Slate 800 with 70% opacity */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
     border-radius: 1rem;
     /* Rounded-xl */
 }
