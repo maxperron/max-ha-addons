@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2
+
+- Fixed Docker build error by allowing system package breaking (PEP 668).
+
 ## 0.1.1
 
 - Switched to `run.sh` for reliable startup.
