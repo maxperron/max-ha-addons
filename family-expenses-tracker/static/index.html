@@ -141,18 +141,18 @@
                 },
 
                 async fetchUsers() {
-                    const res = await fetch('/users/');
+                    const res = await fetch('users/');
                     this.users = await res.json();
                 },
 
                 async fetchAccounts() {
-                    const res = await fetch('/accounts/');
+                    const res = await fetch('accounts/');
                     this.accounts = await res.json();
                 },
 
                 async createUser() {
                     if (!this.newUserName) return;
-                    await fetch('/users/', {
+                    await fetch('users/', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ name: this.newUserName })
@@ -163,7 +163,7 @@
 
                 async deleteUser(id) {
                     if (!confirm('Are you sure?')) return;
-                    await fetch(`/users/${id}`, { method: 'DELETE' });
+                    await fetch(`users/${id}`, { method: 'DELETE' });
                     this.fetchUsers();
                     this.fetchAccounts(); // Account owner names typically change/nullify
                 },
@@ -173,7 +173,7 @@
                     const payload = { name: this.newAccountName };
                     if (this.newAccountUserId) payload.user_id = parseInt(this.newAccountUserId);
 
-                    await fetch('/accounts/', {
+                    await fetch('accounts/', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
@@ -185,7 +185,7 @@
 
                 async deleteAccount(id) {
                     if (!confirm('Are you sure?')) return;
-                    await fetch(`/accounts/${id}`, { method: 'DELETE' });
+                    await fetch(`accounts/${id}`, { method: 'DELETE' });
                     this.fetchAccounts();
                 }
             }

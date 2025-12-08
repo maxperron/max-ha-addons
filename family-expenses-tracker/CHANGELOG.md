@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.9
+
+- Fixed API calls failing in Ingress by using relative paths (e.g., `users/` instead of `/users/`).
+
 ## 0.1.8
 
 - Fixed background visibility by enforcing full screen height (`min-h-screen`).
