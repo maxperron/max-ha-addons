@@ -12,4 +12,3 @@ map:
   - share:rw
 options: {}
 schema: {}
-image: "family-expenses-tracker"
