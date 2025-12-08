@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.2
+- **Transactions UI**: Removed manual add form (import focused). Added bulk categorization with checkboxes and a searchable, hierarchical category dropdown.
+- **Import Fix**: Improved CSV parsing to support 'details' column for descriptions.
+- **Bug Fix**: Fixed visibility issues in Settings page by properly initializing UI state.
+
 ## 0.4.1
 - **Fix**: Added missing `python-multipart` dependency required for file uploads.
 

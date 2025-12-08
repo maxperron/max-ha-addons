@@ -81,7 +81,7 @@ async def upload_csv(
         
         for i, h in enumerate(headers):
             if 'date' in h: date_idx = i
-            if 'description' in h or 'memo' in h or 'payee' in h: desc_idx = i
+            if 'description' in h or 'memo' in h or 'payee' in h or 'details' in h: desc_idx = i
             if 'amount' in h: amount_idx = i
             
         if date_idx == -1 or amount_idx == -1:
