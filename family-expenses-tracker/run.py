@@ -3,7 +3,7 @@ import uvicorn
 from contextlib import asynccontextmanager
 
 from database import create_db_and_tables
-from routers import users, accounts, categories
+from routers import users, accounts, categories, transactions, imports
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -23,6 +23,8 @@ app = FastAPI(lifespan=lifespan)
 app.include_router(users.router)
 app.include_router(accounts.router)
 app.include_router(categories.router)
+app.include_router(transactions.router)
+app.include_router(imports.router)
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.0
+- **Major UI Refactor**: Introduced sidebar navigation and dedicated "Settings" view.
+- **Transactions Management**: Added full support for creating, listing, and filtering transactions.
+- **Import & Rules**: Added CSV file upload and rule-based auto-categorization.
+- **Enhanced Categories**: Improved category tree view with collapsible nodes.
+
 ## 0.3.1
 
 - Fixed database migration issue (automatically adds missing `parent_id` column to existing databases).
