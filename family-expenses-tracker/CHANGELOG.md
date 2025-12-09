@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.1
+- **Fix**: Resolved issue where toggling "Family Expense" or editing categories didn't save correctly.
+- **UI**: Shared accounts now strictly labeled "Shared Account" instead of "No Owner".
+- **API**: Improved backend to support partial updates for better performance and reliability.
+
 ## 0.5.0
 - **Family Tagging**: Identify transactions as "Family" expenses with a simple toggle in the table.
 - **Shared Accounts**: Mark accounts as "Shared" to automatically tag all imported transactions as Family expenses.

@@ -74,6 +74,15 @@ class Transaction(TransactionBase, table=True):
 class TransactionCreate(TransactionBase):
     pass
 
+class TransactionUpdate(SQLModel):
+    date: Optional[date] = None
+    amount: Optional[float] = None
+    description: Optional[str] = None
+    category_id: Optional[int] = None
+    account_id: Optional[int] = None
+    user_id: Optional[int] = None
+    is_family: Optional[bool] = None
+
 class TransactionRead(TransactionBase):
     id: int
     category_name: Optional[str] = None

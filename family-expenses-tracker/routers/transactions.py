@@ -4,7 +4,7 @@ from sqlmodel import Session, select
 from datetime import date
 
 from database import get_session
-from models import Transaction, TransactionCreate, TransactionRead, TransactionBase, Category, Account, User
+from models import Transaction, TransactionCreate, TransactionRead, TransactionUpdate, TransactionBase, Category, Account, User
 
 router = APIRouter(prefix="/transactions", tags=["transactions"])
 
@@ -57,7 +57,7 @@ def read_transaction(transaction_id: int, session: Session = Depends(get_session
     return _populate_transaction_read(transaction, session)
 
 @router.put("/{transaction_id}", response_model=TransactionRead)
-def update_transaction(transaction_id: int, transaction: TransactionBase, session: Session = Depends(get_session)):
+def update_transaction(transaction_id: int, transaction: TransactionUpdate, session: Session = Depends(get_session)):
     db_transaction = session.get(Transaction, transaction_id)
     if not db_transaction:
         raise HTTPException(status_code=404, detail="Transaction not found")
