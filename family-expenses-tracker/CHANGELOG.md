@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.6.1
+- **Import**: Added support for Mastercard CSV format (headerless).
+
 ## 0.6.0
 - **Trips**: You can now create Trips in Settings and assign transactions to them!
   - **Manage Trips**: Create/Delete trips in Settings.
