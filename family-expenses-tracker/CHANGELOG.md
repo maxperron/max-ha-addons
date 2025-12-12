@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.9.1
+- **Fix**: Resolved startup crash `NameError: name 'stats' is not defined` by importing the missing stats router.
+
 ## v0.9.0
 - **Feature**: Analytics Dashboard
     - **Main Dashboard**: Monthly spending overview, 6-month trend bar chart, and category breakdown pie chart.
