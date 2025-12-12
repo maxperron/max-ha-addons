@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.7.5
+- **Fix**: Critical HTML syntax error in Trips section (unclosed tags) causing rendering issues.
+
 ## 0.7.4
 - **Fix**: Resolved blank screen issue caused by missing state initialization for Trips and Categories.
 
