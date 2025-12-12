@@ -9,6 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 
@@ -20,10 +21,15 @@
             <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
                 Family Expenses
             </h1>
-            <div class="text-xs text-slate-500 mt-1">v0.8.0</div>
+            <div class="text-xs text-slate-500 mt-1">v0.9.0</div>
         </div>
 
         <nav class="flex-1 px-4 py-4 space-y-2">
+            <a href="#" @click.prevent="currentView = 'dashboard'"
+                :class="{'bg-slate-800 text-blue-400': currentView === 'dashboard', 'hover:bg-slate-800 text-slate-300': currentView !== 'dashboard'}"
+                class="block px-4 py-2 rounded-lg transition-colors">
+                Dashboard
+            </a>
             <a href="#" @click.prevent="currentView = 'transactions'"
                 class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors"
                 :class="currentView === 'transactions' ? 'bg-blue-600/20 text-blue-400' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'">
@@ -65,6 +71,151 @@
     <main
         class="flex-1 overflow-y-auto bg-slate-900 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-slate-900 via-slate-800 to-slate-900 text-slate-50 p-8">
 
+        <!-- Dashboard View -->
+        <div x-show="currentView === 'dashboard'" class="space-y-6 animate-in">
+            <div class="flex justify-between items-center mb-6">
+                <h2
+                    class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
+                    Dashboard</h2>
+
+                <!-- Main Filters -->
+                <div class="flex gap-2">
+                    <select x-model="dashboard.year" @change="fetchDashboardStats()"
+                        class="glass-panel px-3 py-1 bg-slate-800 text-white rounded">
+                        <template x-for="y in [2023, 2024, 2025, 2026]" :key="y">
+                            <option :value="y" x-text="y"></option>
+                        </template>
+                    </select>
+                    <select x-model="dashboard.month" @change="fetchDashboardStats()"
+                        class="glass-panel px-3 py-1 bg-slate-800 text-white rounded">
+                        <option value="1">Jan</option>
+                        <option value="2">Feb</option>
+                        <option value="3">Mar</option>
+                        <option value="4">Apr</option>
+                        <option value="5">May</option>
+                        <option value="6">Jun</option>
+                        <option value="7">Jul</option>
+                        <option value="8">Aug</option>
+                        <option value="9">Sep</option>
+                        <option value="10">Oct</option>
+                        <option value="11">Nov</option>
+                        <option value="12">Dec</option>
+                    </select>
+                    <select x-model="dashboard.scope" @change="fetchDashboardStats()"
+                        class="glass-panel px-3 py-1 bg-slate-800 text-white rounded">
+                        <option value="all">All Expenses</option>
+                        <option value="family">Family Only</option>
+                        <option value="personal">Personal Only</option>
+                        <optgroup label="By Person">
+                            <template x-for="u in users" :key="u.id">
+                                <option :value="u.id" x-text="u.name"></option>
+                            </template>
+                        </optgroup>
+                    </select>
+                </div>
+            </div>
+
+            <div x-show="!dashboard.stats" class="text-center text-slate-500 py-10">Loading Stats...</div>
+
+            <div x-show="dashboard.stats" class="space-y-6">
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="glass-panel p-6">
+                        <div class="text-slate-400 text-sm mb-1">Spent This Month</div>
+                        <div class="text-3xl font-bold text-white"
+                            x-text="'$' + dashboard.stats?.currentMonthTotal.toFixed(2)"></div>
+                        <div class="text-sm mt-2"
+                            :class="dashboard.stats?.currentMonthTotal > dashboard.stats?.lastMonthTotal ? 'text-red-400' : 'text-green-400'">
+                            <span
+                                x-text="dashboard.stats?.currentMonthTotal > dashboard.stats?.lastMonthTotal ? '↑' : '↓'"></span>
+                            vs last month ($<span x-text="dashboard.stats?.lastMonthTotal.toFixed(2)"></span>)
+                        </div>
+                    </div>
+                    <div class="glass-panel p-6">
+                        <div class="text-slate-400 text-sm mb-1">Top Category</div>
+                        <div class="text-xl font-bold text-white truncate"
+                            x-text="dashboard.stats?.categories[0]?.name || 'N/A'"></div>
+                        <div class="text-lg text-slate-300"
+                            x-text="dashboard.stats?.categories[0] ? '$' + dashboard.stats?.categories[0].total.toFixed(2) : ''">
+                        </div>
+                    </div>
+                    <div class="glass-panel p-6">
+                        <div class="text-slate-400 text-sm mb-1">Scope</div>
+                        <div class="text-xl font-bold text-white capitalize" x-text="dashboard.scope"></div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Pie -->
+                    <div class="glass-panel p-6 h-[400px] flex flex-col">
+                        <h3 class="text-lg font-bold text-white mb-4">Monthly Breakdown</h3>
+                        <div class="flex-1 relative">
+                            <canvas id="dashPieChart"></canvas>
+                        </div>
+                    </div>
+                    <!-- Bar -->
+                    <div class="glass-panel p-6 h-[400px] flex flex-col">
+                        <h3 class="text-lg font-bold text-white mb-4">6 Month Trend</h3>
+                        <div class="flex-1 relative">
+                            <canvas id="dashBarChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Travel Dashboard Section -->
+            <div class="mt-12 pt-6 border-t border-slate-700">
+                <div class="flex justify-between items-center mb-6">
+                    <h2
+                        class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-orange-400">
+                        Travel Dashboard</h2>
+                    <select x-model="travelStats.tripId" @change="fetchTripStats()"
+                        class="glass-panel px-3 py-1 bg-slate-800 text-white rounded min-w-[200px]">
+                        <option value="">-- Select Trip --</option>
+                        <template x-for="t in trips" :key="t.id">
+                            <option :value="t.id" x-text="t.name"></option>
+                        </template>
+                    </select>
+                </div>
+
+                <div x-show="travelStats.tripId && travelStats.stats" class="space-y-6 animate-in">
+                    <div class="glass-panel p-8 text-center">
+                        <div class="text-slate-400 mb-2">Total Cost for <span x-text="travelStats.stats?.trip_name"
+                                class="font-bold text-white"></span></div>
+                        <div class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-indigo-500"
+                            x-text="'$' + travelStats.stats?.total_spent.toFixed(2)"></div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="glass-panel p-6 h-[400px] flex flex-col">
+                            <h3 class="text-lg font-bold text-white mb-4">Cost Breakdown</h3>
+                            <div class="flex-1 relative">
+                                <canvas id="tripPieChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="glass-panel p-6 h-[400px] overflow-y-auto">
+                            <h3 class="text-lg font-bold text-white mb-4">Detailed List</h3>
+                            <table class="w-full text-sm text-slate-300">
+                                <template x-for="cat in travelStats.stats?.categories" :key="cat.id">
+                                    <tr class="border-b border-slate-700/50 hover:bg-slate-700/30 cursor-pointer"
+                                        @click="transactionFilters.category_id=cat.id; transactionFilters.trip_id=travelStats.tripId; currentView='transactions'; fetchTransactions();">
+                                        <td class="py-2" x-text="cat.name"></td>
+                                        <td class="py-2 text-right font-mono" x-text="'$' + cat.total.toFixed(2)"></td>
+                                    </tr>
+                                </template>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div x-show="!travelStats.tripId" class="text-center text-slate-600 italic py-10">
+                    Select a trip above to analyze expenses.
+                </div>
+            </div>
+        </div>
+
         <!-- Transactions View -->
         <div x-show="currentView === 'transactions'" class="animate-in space-y-4" x-data="{ 
             selectedTransactions: [],
@@ -100,7 +251,8 @@
                     });
                 }
                 
-                this.selectedTransactions = [];
+                
+                // this.selectedTransactions = []; // User wants to keep selection
                 this.bulkCategoryId = '';
                 this.fetchTransactions();
             },
@@ -118,7 +270,8 @@
                          alert(`Failed to update transaction ${id}.`);
                     }
                 }
-                this.selectedTransactions = [];
+                }
+                // this.selectedTransactions = []; // User wants to keep selection
                 this.fetchTransactions();
             },
             
@@ -987,6 +1140,7 @@
                     console.error("Init failed", e);
                 }
                 this.fetchTransactions().catch(e => console.error("Transactions failed", e));
+                this.fetchDashboardStats().catch(e => console.error("Dashboard failed", e));
             },
 
             async fetchSettings() {
@@ -1051,7 +1205,161 @@
                 }
             },
 
-            // UI State
+            // Dashboard State
+            dashboard: {
+                year: new Date().getFullYear(),
+                month: new Date().getMonth() + 1, // 1-12
+                scope: 'all', // all, family, personal, or userId
+                stats: null,
+                charts: { pie: null, bar: null }
+            },
+            travelStats: {
+                tripId: '',
+                stats: null,
+                chart: null
+            },
+
+            async fetchDashboardStats() {
+                const query = `year=${this.dashboard.year}&month=${this.dashboard.month}&scope=${this.dashboard.scope}`;
+                const res = await fetch(`stats/dashboard?${query}`);
+                this.dashboard.stats = await res.json();
+                this.renderDashboardCharts();
+            },
+
+            async fetchTripStats() {
+                if (!this.travelStats.tripId) {
+                    this.travelStats.stats = null;
+                    return;
+                }
+                const res = await fetch(`stats/trip/${this.travelStats.tripId}`);
+                this.travelStats.stats = await res.json();
+                this.renderTripChart();
+            },
+
+            renderDashboardCharts() {
+                this.$nextTick(() => {
+                    // Destroy old charts
+                    if (this.dashboard.charts.pie) this.dashboard.charts.pie.destroy();
+                    if (this.dashboard.charts.bar) this.dashboard.charts.bar.destroy();
+
+                    if (!this.dashboard.stats) return;
+
+                    // 1. Pie Chart (Categories)
+                    const pieCtx = document.getElementById('dashPieChart');
+                    if (pieCtx) {
+                        const cats = this.dashboard.stats.categories.slice(0, 10); // Top 10
+                        this.dashboard.charts.pie = new Chart(pieCtx, {
+                            type: 'doughnut',
+                            data: {
+                                labels: cats.map(c => c.name),
+                                datasets: [{
+                                    data: cats.map(c => c.total),
+                                    backgroundColor: ['#6366f1', '#ec4899', '#14b8a6', '#f59e0b', '#8b5cf6', '#ef4444', '#3b82f6', '#10b981', '#f97316', '#64748b'],
+                                    borderWidth: 0
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: { legend: { position: 'right', labels: { color: '#cbd5e1' } } },
+                                onClick: (evt, elements) => {
+                                    if (elements.length > 0) {
+                                        const idx = elements[0].index;
+                                        const catId = cats[idx].id;
+                                        // Redirect to transactions
+                                        // Calculate start/end date for filter
+                                        const y = this.dashboard.stats.trend[5].year; // Current viewed month year
+                                        const m = this.dashboard.stats.trend[5].month_num;
+                                        const lastDay = new Date(y, m, 0).getDate();
+                                        const start = `${y}-${String(m).padStart(2, '0')}-01`;
+                                        const end = `${y}-${String(m).padStart(2, '0')}-${lastDay}`;
+
+                                        this.transactionFilters.category_id = catId;
+                                        this.transactionFilters.start_date = start;
+                                        this.transactionFilters.end_date = end;
+                                        // Handle scope
+                                        // We can't perfectly map 'family/personal' scopes to transaction filters easily without adding more logic, 
+                                        // but we can just filter category and date for now.
+                                        this.currentView = 'transactions';
+                                        this.fetchTransactions();
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    // 2. Bar Chart (Trend)
+                    const barCtx = document.getElementById('dashBarChart');
+                    if (barCtx) {
+                        this.dashboard.charts.bar = new Chart(barCtx, {
+                            type: 'bar',
+                            data: {
+                                labels: this.dashboard.stats.trend.map(t => t.month),
+                                datasets: [{
+                                    label: 'Total Spent',
+                                    data: this.dashboard.stats.trend.map(t => t.total),
+                                    backgroundColor: '#6366f1',
+                                    borderRadius: 4
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                scales: {
+                                    y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
+                                    x: { ticks: { color: '#94a3b8' }, grid: { display: false } }
+                                },
+                                plugins: { legend: { display: false } }
+                            }
+                        });
+                    }
+                });
+            },
+
+            renderTripChart() {
+                this.$nextTick(() => {
+                    if (this.travelStats.chart) this.travelStats.chart.destroy();
+                    if (!this.travelStats.stats) return;
+
+                    const ctx = document.getElementById('tripPieChart');
+                    if (ctx) {
+                        const cats = this.travelStats.stats.categories;
+                        this.travelStats.chart = new Chart(ctx, {
+                            type: 'doughnut',
+                            data: {
+                                labels: cats.map(c => c.name),
+                                datasets: [{
+                                    data: cats.map(c => c.total),
+                                    backgroundColor: ['#6366f1', '#ec4899', '#14b8a6', '#f59e0b', '#8b5cf6', '#ef4444', '#3b82f6', '#10b981', '#f97316', '#64748b'],
+                                    borderWidth: 0
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: { legend: { position: 'right', labels: { color: '#cbd5e1' } } },
+                                onClick: (evt, elements) => {
+                                    if (elements.length > 0) {
+                                        const idx = elements[0].index;
+                                        const catId = cats[idx].id;
+                                        const tripId = this.travelStats.tripId;
+
+                                        this.transactionFilters.category_id = catId;
+                                        this.transactionFilters.trip_id = tripId;
+                                        // Clear dates to show all trip
+                                        this.transactionFilters.start_date = '';
+                                        this.transactionFilters.end_date = '';
+
+                                        this.currentView = 'transactions';
+                                        this.fetchTransactions();
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
+            },
+
+            // Watchers (implemented via x-effect or manual calls)
+
+            // Import Rule Editing State
             editingUser: null,
             editingAccount: null,
             editingCategory: null,
@@ -1135,6 +1443,7 @@
                 if (this.transactionFilters.category_id) url += `&category_id=${this.transactionFilters.category_id}`;
                 if (this.transactionFilters.start_date) url += `&start_date=${this.transactionFilters.start_date}`;
                 if (this.transactionFilters.end_date) url += `&end_date=${this.transactionFilters.end_date}`;
+                if (this.transactionFilters.search) url += `&search=${encodeURIComponent(this.transactionFilters.search)}`;
 
                 const res = await fetch(url);
                 this.transactions = await res.json();
@@ -1217,293 +1526,295 @@
                     });
                     if (!res.ok) alert(`Failed to update transaction ${id}.`);
                 }
-                this.selectedTransactions = [];
+                if (!res.ok) alert(`Failed to update transaction ${id}.`);
+            }
+                // this.selectedTransactions = []; // User wants to keep selection
                 this.fetchTransactions();
-            },
+        },
 
             async bulkDeleteTransactions() {
-                if (this.selectedTransactions.length === 0) return;
-                if (!confirm(`Delete ${this.selectedTransactions.length} transactions?`)) return;
+            if (this.selectedTransactions.length === 0) return;
+            if (!confirm(`Delete ${this.selectedTransactions.length} transactions?`)) return;
 
-                for (const id of this.selectedTransactions) {
-                    await fetch(`transactions/${id}`, { method: 'DELETE' });
-                }
-                this.selectedTransactions = [];
-                this.fetchTransactions();
-            },
+            for (const id of this.selectedTransactions) {
+                await fetch(`transactions/${id}`, { method: 'DELETE' });
+            }
+            this.selectedTransactions = [];
+            this.fetchTransactions();
+        },
 
             async checkAndPromptForRule(transactionId, categoryId) {
-                const transaction = this.transactions.find(t => t.id === transactionId);
-                const category = this.flattenedCategories.find(c => c.id == categoryId);
+            const transaction = this.transactions.find(t => t.id === transactionId);
+            const category = this.flattenedCategories.find(c => c.id == categoryId);
 
-                if (!transaction || !category) return;
+            if (!transaction || !category) return;
 
-                // Check if rule already exists perfectly
-                const existingRule = this.importRules.find(r => r.pattern === transaction.description);
-                if (existingRule && existingRule.category_id === categoryId) return; // Already exists
+            // Check if rule already exists perfectly
+            const existingRule = this.importRules.find(r => r.pattern === transaction.description);
+            if (existingRule && existingRule.category_id === categoryId) return; // Already exists
 
-                // Simple prompt
-                if (confirm(`Do you want to create an auto-categorization rule for "${transaction.description}" -> "${category.name}"?\n\nThis will also apply to all existing matching transactions.`)) {
-                    // Create rule
-                    const res = await fetch('imports/rules/', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            pattern: transaction.description, // using exact description as pattern
-                            category_id: categoryId
-                        })
-                    });
+            // Simple prompt
+            if (confirm(`Do you want to create an auto-categorization rule for "${transaction.description}" -> "${category.name}"?\n\nThis will also apply to all existing matching transactions.`)) {
+                // Create rule
+                const res = await fetch('imports/rules/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        pattern: transaction.description, // using exact description as pattern
+                        category_id: categoryId
+                    })
+                });
 
-                    if (res.ok) {
-                        this.fetchImportRules(); // Refresh rules
-                        // Also refresh transactions because backend might have applied rule to others!
-                        this.fetchTransactions();
-                        // alert("Rule created and applied!"); // Optional, maybe too noisy
-                    }
+                if (res.ok) {
+                    this.fetchImportRules(); // Refresh rules
+                    // Also refresh transactions because backend might have applied rule to others!
+                    this.fetchTransactions();
+                    // alert("Rule created and applied!"); // Optional, maybe too noisy
                 }
-            },
+            }
+        },
 
             async updateTransactionCategory(id, categoryId) {
-                await fetch(`transactions/${id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ category_id: categoryId })
-                });
+            await fetch(`transactions/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ category_id: categoryId })
+            });
 
-                // Prompt for rule
-                await this.checkAndPromptForRule(id, categoryId);
+            // Prompt for rule
+            await this.checkAndPromptForRule(id, categoryId);
 
-                this.fetchTransactions();
-            },
+            this.fetchTransactions();
+        },
 
             async updateTransactionFamily(id, isFamily) {
-                const res = await fetch(`transactions/${id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ is_family: isFamily })
-                });
+            const res = await fetch(`transactions/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ is_family: isFamily })
+            });
 
-                if (!res.ok) {
-                    alert('Failed to update transaction family status. Check logs.');
-                    console.error('Update failed', res.status, res.statusText);
-                    return;
-                }
+            if (!res.ok) {
+                alert('Failed to update transaction family status. Check logs.');
+                console.error('Update failed', res.status, res.statusText);
+                return;
+            }
 
-                this.fetchTransactions();
-            },
+            this.fetchTransactions();
+        },
 
             async updateTransactionTrip(id, tripId) {
-                const payload = { trip_id: tripId ? parseInt(tripId) : null };
-                const res = await fetch(`transactions/${id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+            const payload = { trip_id: tripId ? parseInt(tripId) : null };
+            const res = await fetch(`transactions/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
 
-                if (!res.ok) {
-                    alert('Failed to update trip.');
-                    return;
-                }
-                this.fetchTransactions();
-            },
-            trips: [],
+            if (!res.ok) {
+                alert('Failed to update trip.');
+                return;
+            }
+            this.fetchTransactions();
+        },
+        trips: [],
             categories: [],
 
-            // Form Inputs
-            newUserName: '',
-            newAccountName: '',
-            newAccountUserId: '',
-            newCategoryName: '',
-            newCategoryParentId: '',
+                // Form Inputs
+                newUserName: '',
+                    newAccountName: '',
+                        newAccountUserId: '',
+                            newCategoryName: '',
+                                newCategoryParentId: '',
 
-            collapsedCategories: [], // Array of category IDs that are collapsed
+                                    collapsedCategories: [], // Array of category IDs that are collapsed
 
-            toggleCategory(id) {
-                if (this.collapsedCategories.includes(id)) {
-                    this.collapsedCategories = this.collapsedCategories.filter(c => c !== id);
-                } else {
-                    this.collapsedCategories.push(id);
-                }
-            },
+                                        toggleCategory(id) {
+            if (this.collapsedCategories.includes(id)) {
+                this.collapsedCategories = this.collapsedCategories.filter(c => c !== id);
+            } else {
+                this.collapsedCategories.push(id);
+            }
+        },
 
             get parentCategories() {
-                return this.categories.filter(c => !c.parent_id);
-            },
+            return this.categories.filter(c => !c.parent_id);
+        },
 
             get flattenedCategories() {
-                // Flatten parent -> children for display, respecting collapsed state
-                let flat = [];
-                const parents = this.categories.filter(c => !c.parent_id);
-                parents.forEach(p => {
-                    const children = this.categories.filter(c => c.parent_id === p.id);
-                    const hasChildren = children.length > 0;
-                    const isCollapsed = this.collapsedCategories.includes(p.id);
+            // Flatten parent -> children for display, respecting collapsed state
+            let flat = [];
+            const parents = this.categories.filter(c => !c.parent_id);
+            parents.forEach(p => {
+                const children = this.categories.filter(c => c.parent_id === p.id);
+                const hasChildren = children.length > 0;
+                const isCollapsed = this.collapsedCategories.includes(p.id);
 
-                    flat.push({
-                        ...p,
-                        depth: 0,
-                        hasChildren: hasChildren,
-                        isCollapsed: isCollapsed
-                    });
-
-                    if (hasChildren && !isCollapsed) {
-                        children.forEach(c => {
-                            flat.push({ ...c, depth: 1 });
-                        });
-                    }
+                flat.push({
+                    ...p,
+                    depth: 0,
+                    hasChildren: hasChildren,
+                    isCollapsed: isCollapsed
                 });
-                return flat;
-            },
+
+                if (hasChildren && !isCollapsed) {
+                    children.forEach(c => {
+                        flat.push({ ...c, depth: 1 });
+                    });
+                }
+            });
+            return flat;
+        },
 
             // API Fetchers
             async fetchUsers() {
-                const res = await fetch('users/');
-                this.users = await res.json();
-            },
+            const res = await fetch('users/');
+            this.users = await res.json();
+        },
 
             async fetchAccounts() {
-                const res = await fetch('accounts/');
-                this.accounts = await res.json();
-            },
+            const res = await fetch('accounts/');
+            this.accounts = await res.json();
+        },
 
             async fetchCategories() {
-                const res = await fetch('categories/');
-                this.categories = await res.json();
-            },
+            const res = await fetch('categories/');
+            this.categories = await res.json();
+        },
 
             // Users
             async createUser() {
-                if (!this.newUserName) return;
-                await fetch('users/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: this.newUserName })
-                });
-                this.newUserName = '';
-                this.fetchUsers();
-            },
+            if (!this.newUserName) return;
+            await fetch('users/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: this.newUserName })
+            });
+            this.newUserName = '';
+            this.fetchUsers();
+        },
 
             async updateUser(id) {
-                const user = this.users.find(u => u.id === id);
-                if (!user) return;
-                await fetch(`users/${id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: user.name }) // user.name is bound to input
-                });
-                this.editingUser = null;
-                this.fetchUsers();
-            },
+            const user = this.users.find(u => u.id === id);
+            if (!user) return;
+            await fetch(`users/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: user.name }) // user.name is bound to input
+            });
+            this.editingUser = null;
+            this.fetchUsers();
+        },
 
             async deleteUser(id) {
-                if (!confirm('Are you sure?')) return;
-                await fetch(`users/${id}`, { method: 'DELETE' });
-                this.fetchUsers();
-                this.fetchAccounts();
-            },
+            if (!confirm('Are you sure?')) return;
+            await fetch(`users/${id}`, { method: 'DELETE' });
+            this.fetchUsers();
+            this.fetchAccounts();
+        },
 
             // Accounts
             async createAccount() {
-                if (!this.newAccountName) return;
-                const payload = {
-                    name: this.newAccountName,
-                    is_shared: this.newAccountIsShared
-                };
-                if (this.newAccountUserId) payload.user_id = parseInt(this.newAccountUserId);
+            if (!this.newAccountName) return;
+            const payload = {
+                name: this.newAccountName,
+                is_shared: this.newAccountIsShared
+            };
+            if (this.newAccountUserId) payload.user_id = parseInt(this.newAccountUserId);
 
-                await fetch('accounts/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                this.newAccountName = '';
-                this.newAccountUserId = '';
-                this.newAccountIsShared = false;
-                this.fetchAccounts();
-            },
+            await fetch('accounts/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            this.newAccountName = '';
+            this.newAccountUserId = '';
+            this.newAccountIsShared = false;
+            this.fetchAccounts();
+        },
 
             async updateAccount(id) {
-                const account = this.accounts.find(a => a.id === id);
-                if (!account) return;
+            const account = this.accounts.find(a => a.id === id);
+            if (!account) return;
 
-                const payload = {
-                    name: account.name,
-                    is_shared: account.is_shared
-                };
-                // Ensure user_id is null if empty string
-                payload.user_id = account.user_id ? parseInt(account.user_id) : null;
+            const payload = {
+                name: account.name,
+                is_shared: account.is_shared
+            };
+            // Ensure user_id is null if empty string
+            payload.user_id = account.user_id ? parseInt(account.user_id) : null;
 
-                await fetch(`accounts/${id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                this.editingAccount = null;
-                this.fetchAccounts();
-            },
+            await fetch(`accounts/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            this.editingAccount = null;
+            this.fetchAccounts();
+        },
 
             async deleteAccount(id) {
-                if (!confirm('Delete account? This might fail if transactions exist.')) return;
-                await fetch(`accounts/${id}`, { method: 'DELETE' });
-                this.fetchAccounts();
-            },
+            if (!confirm('Delete account? This might fail if transactions exist.')) return;
+            await fetch(`accounts/${id}`, { method: 'DELETE' });
+            this.fetchAccounts();
+        },
 
-            // Trips
-            newTripName: '',
+        // Trips
+        newTripName: '',
             async fetchTrips() {
-                const res = await fetch('trips/');
-                this.trips = await res.json();
-            },
+            const res = await fetch('trips/');
+            this.trips = await res.json();
+        },
             async createTrip() {
-                if (!this.newTripName) return;
-                await fetch('trips/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: this.newTripName })
-                });
-                this.newTripName = '';
-                this.fetchTrips();
-            },
+            if (!this.newTripName) return;
+            await fetch('trips/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: this.newTripName })
+            });
+            this.newTripName = '';
+            this.fetchTrips();
+        },
             async deleteTrip(id) {
-                if (!confirm('Delete trip? Transactions will remain but lose the trip tag.')) return;
-                await fetch(`trips/${id}`, { method: 'DELETE' });
-                this.fetchTrips();
-            },
+            if (!confirm('Delete trip? Transactions will remain but lose the trip tag.')) return;
+            await fetch(`trips/${id}`, { method: 'DELETE' });
+            this.fetchTrips();
+        },
 
             // Categories
             async createCategory() {
-                if (!this.newCategoryName) return;
-                const payload = { name: this.newCategoryName };
-                if (this.newCategoryParentId) payload.parent_id = parseInt(this.newCategoryParentId);
+            if (!this.newCategoryName) return;
+            const payload = { name: this.newCategoryName };
+            if (this.newCategoryParentId) payload.parent_id = parseInt(this.newCategoryParentId);
 
-                await fetch('categories/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                this.newCategoryName = '';
-                this.newCategoryParentId = '';
-                this.fetchCategories();
-            },
+            await fetch('categories/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            this.newCategoryName = '';
+            this.newCategoryParentId = '';
+            this.fetchCategories();
+        },
 
             async updateCategory(id) {
-                const cat = this.categories.find(c => c.id === id);
-                if (!cat) return;
-                await fetch(`categories/${id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: cat.name, parent_id: cat.parent_id, icon: cat.icon })
-                });
-                this.editingCategory = null;
-                this.fetchCategories();
-            },
+            const cat = this.categories.find(c => c.id === id);
+            if (!cat) return;
+            await fetch(`categories/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: cat.name, parent_id: cat.parent_id, icon: cat.icon })
+            });
+            this.editingCategory = null;
+            this.fetchCategories();
+        },
 
             async deleteCategory(id) {
-                if (!confirm('Are you sure?')) return;
-                await fetch(`categories/${id}`, { method: 'DELETE' });
-                this.fetchCategories();
-            }
+            if (!confirm('Are you sure?')) return;
+            await fetch(`categories/${id}`, { method: 'DELETE' });
+            this.fetchCategories();
         }
+    }
     }
 </script>
 </body>

@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.9.0
+- **Feature**: Analytics Dashboard
+    - **Main Dashboard**: Monthly spending overview, 6-month trend bar chart, and category breakdown pie chart.
+    - **Filters**: Analyze by Month, Year, and Scope (Family vs Personal vs Individual).
+    - **Travel Dashboard**: Dedicated tab for analyzing trip expenses with cost breakdown.
+    - **Drill-down**: Clicking charts redirects to the filtered transaction list.
+- **Library**: integrated `Chart.js` for visualizations.
+
 ## v0.8.0
 - **Feature**: Advanced Auto-Categorization Rules
     - Edit existing rules (Pattern & Category).

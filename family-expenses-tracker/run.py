@@ -18,8 +18,12 @@ import os
 
 # ... imports ...
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(title="Family Expenses Tracker")
 
+# Mount static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Include Routers
 app.include_router(users.router)
 app.include_router(accounts.router)
 app.include_router(categories.router)
@@ -27,9 +31,7 @@ app.include_router(transactions.router)
 app.include_router(imports.router)
 app.include_router(trips.router)
 app.include_router(settings.router)
-
-# Mount static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.include_router(stats.router)
 
 @app.get("/")
 def read_root():
