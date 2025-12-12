@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.7.9
+- **Feature**: Added "Test Connection" button in AI Settings to debug model availability and API key validity.
+
 ## 0.7.8
 - **Fix**: Implemented robust fallback logic for AI models. Tries `gemini-1.5-flash-001`, `gemini-1.5-flash`, and `gemini-pro` sequentially.
 
