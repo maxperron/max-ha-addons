@@ -3,7 +3,7 @@ import uvicorn
 from contextlib import asynccontextmanager
 
 from database import create_db_and_tables
-from routers import users, accounts, categories, transactions, imports
+from routers import users, accounts, categories, transactions, imports, trips
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

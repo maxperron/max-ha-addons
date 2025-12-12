@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.3
+- **Fix**: Resolved `NameError` on startup due to missing import for Trips module.
+- **Fix**: Fixed startup error (indentation issue) in v0.6.2.
+
 ## 0.6.2
 - **Fix**: Fixed startup error (indentation issue) introduced in v0.6.1.
 - **Import**: Added support for Mastercard CSV format (headerless).
