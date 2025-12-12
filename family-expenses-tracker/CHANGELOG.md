@@ -1,7 +1,10 @@
 # Changelog
 
-## 0.6.1
+## 0.6.2
+- **Fix**: Fixed startup error (indentation issue) introduced in v0.6.1.
 - **Import**: Added support for Mastercard CSV format (headerless).
+
+## 0.6.0
 
 ## 0.6.0
 - **Trips**: You can now create Trips in Settings and assign transactions to them!

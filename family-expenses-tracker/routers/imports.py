@@ -112,41 +112,42 @@ async def upload_csv(
     headers = [h.lower() for h in csv_lines[0]]
     
     # Simple Index detection
-    date_idx = -1
-    desc_idx = -1
-    amount_idx = -1
-    start_row = 1 # Default to skipping header
-    
-    # Strategy 1: Header names
-    for i, h in enumerate(headers):
-        if 'date' in h: date_idx = i
-        if 'description' in h or 'memo' in h or 'payee' in h or 'details' in h: desc_idx = i
-        if 'amount' in h: amount_idx = i
+    try:
+        date_idx = -1
+        desc_idx = -1
+        amount_idx = -1
+        start_row = 1 # Default to skipping header
         
-    # Strategy 2: Mastercard Headerless or similar known formats
-    if date_idx == -1 or amount_idx == -1:
-         # Check for known signatures in the first row
-         first_cell = csv_lines[0][0].upper() if len(csv_lines[0]) > 0 else ""
-         if "MASTERCARD" in first_cell and len(csv_lines[0]) >= 12:
-             # Known Mastercard format
-             # "MASTERCARD ...", "", "", Date, Seq, Desc, ..., Amount
-             date_idx = 3
-             desc_idx = 5
-             amount_idx = 11
-             start_row = 0 # No header, data starts at row 0
-             print(f"Detected Mastercard CSV format. Indices: Date={date_idx}, Desc={desc_idx}, Amount={amount_idx}")
+        # Strategy 1: Header names
+        for i, h in enumerate(headers):
+            if 'date' in h: date_idx = i
+            if 'description' in h or 'memo' in h or 'payee' in h or 'details' in h: desc_idx = i
+            if 'amount' in h: amount_idx = i
+            
+        # Strategy 2: Mastercard Headerless or similar known formats
+        if date_idx == -1 or amount_idx == -1:
+             # Check for known signatures in the first row
+             first_cell = csv_lines[0][0].upper() if len(csv_lines[0]) > 0 else ""
+             if "MASTERCARD" in first_cell and len(csv_lines[0]) >= 12:
+                 # Known Mastercard format
+                 # "MASTERCARD ...", "", "", Date, Seq, Desc, ..., Amount
+                 date_idx = 3
+                 desc_idx = 5
+                 amount_idx = 11
+                 start_row = 0 # No header, data starts at row 0
+                 print(f"Detected Mastercard CSV format. Indices: Date={date_idx}, Desc={desc_idx}, Amount={amount_idx}")
 
-    if date_idx == -1 or amount_idx == -1:
-         # Still failed
-         raise HTTPException(status_code=400, detail="Could not detect CSV format. Ensure headers exist (Date, Amount) or use a supported bank format.")
-         
-    # Process rows
-    for row in csv_lines[start_row:]:
-        if len(row) < max(date_idx, desc_idx, amount_idx): continue
-        
-        raw_date = row[date_idx]
-        raw_desc = row[desc_idx] if desc_idx != -1 else "Imported Transaction"
-        raw_amount = row[amount_idx]
+        if date_idx == -1 or amount_idx == -1:
+             # Still failed
+             raise HTTPException(status_code=400, detail="Could not detect CSV format. Ensure headers exist (Date, Amount) or use a supported bank format.")
+             
+        # Process rows
+        for row in csv_lines[start_row:]:
+            if len(row) < max(date_idx, desc_idx, amount_idx): continue
+            
+            raw_date = row[date_idx]
+            raw_desc = row[desc_idx] if desc_idx != -1 else "Imported Transaction"
+            raw_amount = row[amount_idx]
             
             # Parsing Date
             # Try formats YYYY-MM-DD, MM/DD/YYYY, etc. 
