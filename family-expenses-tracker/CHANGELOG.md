@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.9.2
+- **Fix**: Resolved critical JavaScript syntax errors in Bulk Actions logic that caused a blank screen on startup.
+
 ## v0.9.1
 - **Fix**: Resolved startup crash `NameError: name 'stats' is not defined` by importing the missing stats router.
 

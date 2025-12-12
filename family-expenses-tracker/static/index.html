@@ -21,7 +21,7 @@
             <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
                 Family Expenses
             </h1>
-            <div class="text-xs text-slate-500 mt-1">v0.9.1</div>
+            <div class="text-xs text-slate-500 mt-1">v0.9.2</div>
         </div>
 
         <nav class="flex-1 px-4 py-4 space-y-2">
@@ -269,7 +269,6 @@
                     if (!res.ok) {
                          alert(`Failed to update transaction ${id}.`);
                     }
-                }
                 }
                 // this.selectedTransactions = []; // User wants to keep selection
                 this.fetchTransactions();
@@ -1526,295 +1525,293 @@
                     });
                     if (!res.ok) alert(`Failed to update transaction ${id}.`);
                 }
-                if (!res.ok) alert(`Failed to update transaction ${id}.`);
-            }
                 // this.selectedTransactions = []; // User wants to keep selection
                 this.fetchTransactions();
-        },
+            },
 
             async bulkDeleteTransactions() {
-            if (this.selectedTransactions.length === 0) return;
-            if (!confirm(`Delete ${this.selectedTransactions.length} transactions?`)) return;
+                if (this.selectedTransactions.length === 0) return;
+                if (!confirm(`Delete ${this.selectedTransactions.length} transactions?`)) return;
 
-            for (const id of this.selectedTransactions) {
-                await fetch(`transactions/${id}`, { method: 'DELETE' });
-            }
-            this.selectedTransactions = [];
-            this.fetchTransactions();
-        },
+                for (const id of this.selectedTransactions) {
+                    await fetch(`transactions/${id}`, { method: 'DELETE' });
+                }
+                this.selectedTransactions = [];
+                this.fetchTransactions();
+            },
 
             async checkAndPromptForRule(transactionId, categoryId) {
-            const transaction = this.transactions.find(t => t.id === transactionId);
-            const category = this.flattenedCategories.find(c => c.id == categoryId);
+                const transaction = this.transactions.find(t => t.id === transactionId);
+                const category = this.flattenedCategories.find(c => c.id == categoryId);
 
-            if (!transaction || !category) return;
+                if (!transaction || !category) return;
 
-            // Check if rule already exists perfectly
-            const existingRule = this.importRules.find(r => r.pattern === transaction.description);
-            if (existingRule && existingRule.category_id === categoryId) return; // Already exists
+                // Check if rule already exists perfectly
+                const existingRule = this.importRules.find(r => r.pattern === transaction.description);
+                if (existingRule && existingRule.category_id === categoryId) return; // Already exists
 
-            // Simple prompt
-            if (confirm(`Do you want to create an auto-categorization rule for "${transaction.description}" -> "${category.name}"?\n\nThis will also apply to all existing matching transactions.`)) {
-                // Create rule
-                const res = await fetch('imports/rules/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        pattern: transaction.description, // using exact description as pattern
-                        category_id: categoryId
-                    })
-                });
+                // Simple prompt
+                if (confirm(`Do you want to create an auto-categorization rule for "${transaction.description}" -> "${category.name}"?\n\nThis will also apply to all existing matching transactions.`)) {
+                    // Create rule
+                    const res = await fetch('imports/rules/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            pattern: transaction.description, // using exact description as pattern
+                            category_id: categoryId
+                        })
+                    });
 
-                if (res.ok) {
-                    this.fetchImportRules(); // Refresh rules
-                    // Also refresh transactions because backend might have applied rule to others!
-                    this.fetchTransactions();
-                    // alert("Rule created and applied!"); // Optional, maybe too noisy
+                    if (res.ok) {
+                        this.fetchImportRules(); // Refresh rules
+                        // Also refresh transactions because backend might have applied rule to others!
+                        this.fetchTransactions();
+                        // alert("Rule created and applied!"); // Optional, maybe too noisy
+                    }
                 }
-            }
-        },
+            },
 
             async updateTransactionCategory(id, categoryId) {
-            await fetch(`transactions/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ category_id: categoryId })
-            });
-
-            // Prompt for rule
-            await this.checkAndPromptForRule(id, categoryId);
-
-            this.fetchTransactions();
-        },
-
-            async updateTransactionFamily(id, isFamily) {
-            const res = await fetch(`transactions/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ is_family: isFamily })
-            });
-
-            if (!res.ok) {
-                alert('Failed to update transaction family status. Check logs.');
-                console.error('Update failed', res.status, res.statusText);
-                return;
-            }
-
-            this.fetchTransactions();
-        },
-
-            async updateTransactionTrip(id, tripId) {
-            const payload = { trip_id: tripId ? parseInt(tripId) : null };
-            const res = await fetch(`transactions/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            if (!res.ok) {
-                alert('Failed to update trip.');
-                return;
-            }
-            this.fetchTransactions();
-        },
-        trips: [],
-            categories: [],
-
-                // Form Inputs
-                newUserName: '',
-                    newAccountName: '',
-                        newAccountUserId: '',
-                            newCategoryName: '',
-                                newCategoryParentId: '',
-
-                                    collapsedCategories: [], // Array of category IDs that are collapsed
-
-                                        toggleCategory(id) {
-            if (this.collapsedCategories.includes(id)) {
-                this.collapsedCategories = this.collapsedCategories.filter(c => c !== id);
-            } else {
-                this.collapsedCategories.push(id);
-            }
-        },
-
-            get parentCategories() {
-            return this.categories.filter(c => !c.parent_id);
-        },
-
-            get flattenedCategories() {
-            // Flatten parent -> children for display, respecting collapsed state
-            let flat = [];
-            const parents = this.categories.filter(c => !c.parent_id);
-            parents.forEach(p => {
-                const children = this.categories.filter(c => c.parent_id === p.id);
-                const hasChildren = children.length > 0;
-                const isCollapsed = this.collapsedCategories.includes(p.id);
-
-                flat.push({
-                    ...p,
-                    depth: 0,
-                    hasChildren: hasChildren,
-                    isCollapsed: isCollapsed
+                await fetch(`transactions/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ category_id: categoryId })
                 });
 
-                if (hasChildren && !isCollapsed) {
-                    children.forEach(c => {
-                        flat.push({ ...c, depth: 1 });
-                    });
+                // Prompt for rule
+                await this.checkAndPromptForRule(id, categoryId);
+
+                this.fetchTransactions();
+            },
+
+            async updateTransactionFamily(id, isFamily) {
+                const res = await fetch(`transactions/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ is_family: isFamily })
+                });
+
+                if (!res.ok) {
+                    alert('Failed to update transaction family status. Check logs.');
+                    console.error('Update failed', res.status, res.statusText);
+                    return;
                 }
-            });
-            return flat;
-        },
+
+                this.fetchTransactions();
+            },
+
+            async updateTransactionTrip(id, tripId) {
+                const payload = { trip_id: tripId ? parseInt(tripId) : null };
+                const res = await fetch(`transactions/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) {
+                    alert('Failed to update trip.');
+                    return;
+                }
+                this.fetchTransactions();
+            },
+            trips: [],
+            categories: [],
+
+            // Form Inputs
+            newUserName: '',
+            newAccountName: '',
+            newAccountUserId: '',
+            newCategoryName: '',
+            newCategoryParentId: '',
+
+            collapsedCategories: [], // Array of category IDs that are collapsed
+
+            toggleCategory(id) {
+                if (this.collapsedCategories.includes(id)) {
+                    this.collapsedCategories = this.collapsedCategories.filter(c => c !== id);
+                } else {
+                    this.collapsedCategories.push(id);
+                }
+            },
+
+            get parentCategories() {
+                return this.categories.filter(c => !c.parent_id);
+            },
+
+            get flattenedCategories() {
+                // Flatten parent -> children for display, respecting collapsed state
+                let flat = [];
+                const parents = this.categories.filter(c => !c.parent_id);
+                parents.forEach(p => {
+                    const children = this.categories.filter(c => c.parent_id === p.id);
+                    const hasChildren = children.length > 0;
+                    const isCollapsed = this.collapsedCategories.includes(p.id);
+
+                    flat.push({
+                        ...p,
+                        depth: 0,
+                        hasChildren: hasChildren,
+                        isCollapsed: isCollapsed
+                    });
+
+                    if (hasChildren && !isCollapsed) {
+                        children.forEach(c => {
+                            flat.push({ ...c, depth: 1 });
+                        });
+                    }
+                });
+                return flat;
+            },
 
             // API Fetchers
             async fetchUsers() {
-            const res = await fetch('users/');
-            this.users = await res.json();
-        },
+                const res = await fetch('users/');
+                this.users = await res.json();
+            },
 
             async fetchAccounts() {
-            const res = await fetch('accounts/');
-            this.accounts = await res.json();
-        },
+                const res = await fetch('accounts/');
+                this.accounts = await res.json();
+            },
 
             async fetchCategories() {
-            const res = await fetch('categories/');
-            this.categories = await res.json();
-        },
+                const res = await fetch('categories/');
+                this.categories = await res.json();
+            },
 
             // Users
             async createUser() {
-            if (!this.newUserName) return;
-            await fetch('users/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: this.newUserName })
-            });
-            this.newUserName = '';
-            this.fetchUsers();
-        },
+                if (!this.newUserName) return;
+                await fetch('users/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: this.newUserName })
+                });
+                this.newUserName = '';
+                this.fetchUsers();
+            },
 
             async updateUser(id) {
-            const user = this.users.find(u => u.id === id);
-            if (!user) return;
-            await fetch(`users/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: user.name }) // user.name is bound to input
-            });
-            this.editingUser = null;
-            this.fetchUsers();
-        },
+                const user = this.users.find(u => u.id === id);
+                if (!user) return;
+                await fetch(`users/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: user.name }) // user.name is bound to input
+                });
+                this.editingUser = null;
+                this.fetchUsers();
+            },
 
             async deleteUser(id) {
-            if (!confirm('Are you sure?')) return;
-            await fetch(`users/${id}`, { method: 'DELETE' });
-            this.fetchUsers();
-            this.fetchAccounts();
-        },
+                if (!confirm('Are you sure?')) return;
+                await fetch(`users/${id}`, { method: 'DELETE' });
+                this.fetchUsers();
+                this.fetchAccounts();
+            },
 
             // Accounts
             async createAccount() {
-            if (!this.newAccountName) return;
-            const payload = {
-                name: this.newAccountName,
-                is_shared: this.newAccountIsShared
-            };
-            if (this.newAccountUserId) payload.user_id = parseInt(this.newAccountUserId);
+                if (!this.newAccountName) return;
+                const payload = {
+                    name: this.newAccountName,
+                    is_shared: this.newAccountIsShared
+                };
+                if (this.newAccountUserId) payload.user_id = parseInt(this.newAccountUserId);
 
-            await fetch('accounts/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            this.newAccountName = '';
-            this.newAccountUserId = '';
-            this.newAccountIsShared = false;
-            this.fetchAccounts();
-        },
+                await fetch('accounts/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                this.newAccountName = '';
+                this.newAccountUserId = '';
+                this.newAccountIsShared = false;
+                this.fetchAccounts();
+            },
 
             async updateAccount(id) {
-            const account = this.accounts.find(a => a.id === id);
-            if (!account) return;
+                const account = this.accounts.find(a => a.id === id);
+                if (!account) return;
 
-            const payload = {
-                name: account.name,
-                is_shared: account.is_shared
-            };
-            // Ensure user_id is null if empty string
-            payload.user_id = account.user_id ? parseInt(account.user_id) : null;
+                const payload = {
+                    name: account.name,
+                    is_shared: account.is_shared
+                };
+                // Ensure user_id is null if empty string
+                payload.user_id = account.user_id ? parseInt(account.user_id) : null;
 
-            await fetch(`accounts/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            this.editingAccount = null;
-            this.fetchAccounts();
-        },
+                await fetch(`accounts/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                this.editingAccount = null;
+                this.fetchAccounts();
+            },
 
             async deleteAccount(id) {
-            if (!confirm('Delete account? This might fail if transactions exist.')) return;
-            await fetch(`accounts/${id}`, { method: 'DELETE' });
-            this.fetchAccounts();
-        },
+                if (!confirm('Delete account? This might fail if transactions exist.')) return;
+                await fetch(`accounts/${id}`, { method: 'DELETE' });
+                this.fetchAccounts();
+            },
 
-        // Trips
-        newTripName: '',
+            // Trips
+            newTripName: '',
             async fetchTrips() {
-            const res = await fetch('trips/');
-            this.trips = await res.json();
-        },
+                const res = await fetch('trips/');
+                this.trips = await res.json();
+            },
             async createTrip() {
-            if (!this.newTripName) return;
-            await fetch('trips/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: this.newTripName })
-            });
-            this.newTripName = '';
-            this.fetchTrips();
-        },
+                if (!this.newTripName) return;
+                await fetch('trips/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: this.newTripName })
+                });
+                this.newTripName = '';
+                this.fetchTrips();
+            },
             async deleteTrip(id) {
-            if (!confirm('Delete trip? Transactions will remain but lose the trip tag.')) return;
-            await fetch(`trips/${id}`, { method: 'DELETE' });
-            this.fetchTrips();
-        },
+                if (!confirm('Delete trip? Transactions will remain but lose the trip tag.')) return;
+                await fetch(`trips/${id}`, { method: 'DELETE' });
+                this.fetchTrips();
+            },
 
             // Categories
             async createCategory() {
-            if (!this.newCategoryName) return;
-            const payload = { name: this.newCategoryName };
-            if (this.newCategoryParentId) payload.parent_id = parseInt(this.newCategoryParentId);
+                if (!this.newCategoryName) return;
+                const payload = { name: this.newCategoryName };
+                if (this.newCategoryParentId) payload.parent_id = parseInt(this.newCategoryParentId);
 
-            await fetch('categories/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            this.newCategoryName = '';
-            this.newCategoryParentId = '';
-            this.fetchCategories();
-        },
+                await fetch('categories/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                this.newCategoryName = '';
+                this.newCategoryParentId = '';
+                this.fetchCategories();
+            },
 
             async updateCategory(id) {
-            const cat = this.categories.find(c => c.id === id);
-            if (!cat) return;
-            await fetch(`categories/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: cat.name, parent_id: cat.parent_id, icon: cat.icon })
-            });
-            this.editingCategory = null;
-            this.fetchCategories();
-        },
+                const cat = this.categories.find(c => c.id === id);
+                if (!cat) return;
+                await fetch(`categories/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: cat.name, parent_id: cat.parent_id, icon: cat.icon })
+                });
+                this.editingCategory = null;
+                this.fetchCategories();
+            },
 
             async deleteCategory(id) {
-            if (!confirm('Are you sure?')) return;
-            await fetch(`categories/${id}`, { method: 'DELETE' });
-            this.fetchCategories();
+                if (!confirm('Are you sure?')) return;
+                await fetch(`categories/${id}`, { method: 'DELETE' });
+                this.fetchCategories();
+            }
         }
-    }
     }
 </script>
 </body>
