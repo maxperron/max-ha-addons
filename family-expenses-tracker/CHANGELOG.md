@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.7.8
+- **Fix**: Implemented robust fallback logic for AI models. Tries `gemini-1.5-flash-001`, `gemini-1.5-flash`, and `gemini-pro` sequentially.
+
 ## 0.7.7
 - **Fix**: Updated Gemini AI model to `gemini-1.5-flash-latest` to resolve API errors.
 

@@ -160,9 +160,26 @@ Respond ONLY with the JSON list.
 """
 
     # 4. Call Model
+    models_to_try = ['gemini-1.5-flash-001', 'gemini-1.5-flash', 'gemini-pro']
+    model = None
+    response = None
+    last_error = None
+
+    for model_name in models_to_try:
+        try:
+            print(f"Attempting AI categorization with model: {model_name}")
+            model = genai.GenerativeModel(model_name)
+            response = model.generate_content(prompt)
+            print(f"Success with model: {model_name}")
+            break
+        except Exception as e:
+            print(f"Failed with {model_name}: {e}")
+            last_error = e
+    
+    if not response:
+         raise HTTPException(status_code=500, detail=f"AI Processing Failed. Tried models {models_to_try}. Last error: {str(last_error)}")
+
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash-latest')
-        response = model.generate_content(prompt)
         text_response = response.text
         
         # Cleanup markdown
@@ -174,8 +191,8 @@ Respond ONLY with the JSON list.
         results = json.loads(text_response)
         
     except Exception as e:
-        print(f"AI Error: {e}")
-        raise HTTPException(status_code=500, detail=f"AI Processing Failed: {str(e)}")
+        print(f"AI Response Parsing Error: {e}")
+        raise HTTPException(status_code=500, detail=f"AI Response Parsing Failed: {str(e)}")
         
     # 5. Process Results
     updated_count = 0
