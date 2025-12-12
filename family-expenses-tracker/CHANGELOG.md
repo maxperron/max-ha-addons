@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.4
+- **Critical Fix**: Resolved a layout issue where all pages (Dashboard, Travel, Transactions) were loaded simultaneously due to a broken HTML structure.
+- **Improvement**: Default view is now set to **Dashboard** on startup.
+
 ## v0.9.3
 - **Feature**: Moved **Travel Dashboard** to a dedicated sidebar page for better accessibility.
 - **Improvement**: Charts now handle resizing gracefully and legends are clickable filters.
