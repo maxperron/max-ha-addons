@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.9.5
+- **Fix**: Resolved an issue where the **Travel** filter was ignored when viewing transaction details.
+
 ## v0.9.4
 - **Critical Fix**: Resolved a layout issue where all pages (Dashboard, Travel, Transactions) were loaded simultaneously due to a broken HTML structure.
 - **Improvement**: Default view is now set to **Dashboard** on startup.

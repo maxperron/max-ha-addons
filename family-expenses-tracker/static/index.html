@@ -21,7 +21,7 @@
             <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
                 Family Expenses
             </h1>
-            <div class="text-xs text-slate-500 mt-1">v0.9.4</div>
+            <div class="text-xs text-slate-500 mt-1">v0.9.5</div>
         </div>
 
         <nav class="flex-1 px-4 py-4 space-y-2">
@@ -1482,6 +1482,7 @@
                 let url = 'transactions/?skip=0&limit=100';
                 if (this.transactionFilters.account_id) url += `&account_id=${this.transactionFilters.account_id}`;
                 if (this.transactionFilters.category_id) url += `&category_id=${this.transactionFilters.category_id}`;
+                if (this.transactionFilters.trip_id) url += `&trip_id=${this.transactionFilters.trip_id}`;
                 if (this.transactionFilters.start_date) url += `&start_date=${this.transactionFilters.start_date}`;
                 if (this.transactionFilters.end_date) url += `&end_date=${this.transactionFilters.end_date}`;
                 if (this.transactionFilters.search) url += `&search=${encodeURIComponent(this.transactionFilters.search)}`;
