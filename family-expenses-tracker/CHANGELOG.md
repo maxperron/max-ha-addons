@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.7.12
+- **Fix**: Updated AI model fallback list to include `gemini-2.0-flash` series, which are available to newer API keys.
+
 ## 0.7.11
 - **Fix**: Resolved API route conflict where `ai-test` was being misinterpreted as a transaction ID.
 

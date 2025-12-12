@@ -186,7 +186,7 @@ Respond ONLY with the JSON list.
 """
 
     # 4. Call Model
-    models_to_try = ['gemini-1.5-flash-001', 'gemini-1.5-flash', 'gemini-pro']
+    models_to_try = ['gemini-2.0-flash', 'gemini-2.0-flash-exp', 'gemini-1.5-flash', 'gemini-1.5-flash-001', 'gemini-pro']
     model = None
     response = None
     last_error = None
