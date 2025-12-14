@@ -13,6 +13,8 @@ from sqlalchemy import text
 from sqlalchemy.exc import OperationalError
 
 def create_db_and_tables():
+    # Ensure models are registered with SQLModel before creating tables
+    import models 
     SQLModel.metadata.create_all(engine)
     migrate_db()
     seed_db()
@@ -98,7 +100,8 @@ def migrate_db():
             # Check if setting table exists
             tables = session.exec(text("SELECT name FROM sqlite_master WHERE type='table' AND name='setting'")).all()
             if not tables:
-                session.exec(text("CREATE TABLE setting (key TEXT PRIMARY KEY, value TEXT)"))
+                # Use IF NOT EXISTS for safety
+                session.exec(text("CREATE TABLE IF NOT EXISTS setting (key TEXT PRIMARY KEY, value TEXT)"))
                 session.commit()
                 print("Migrated: Created setting table")
         except Exception as e:

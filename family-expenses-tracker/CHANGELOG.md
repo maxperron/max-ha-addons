@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.9.14
+- **Fix**: Reinforced database schema creation to ensure the `setting` table is properly created on startup.
+
 ## v0.9.13
 - **Fix**: Resolved critical crash in Settings page due to missing `settings` object initialization.
 
