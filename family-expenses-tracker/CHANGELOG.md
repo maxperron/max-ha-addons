@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.12
+- **Fix**: Resolved issue where "Add Account" and other buttons in Settings might not work due to missing initialization.
+- **UI**: Disabled autocomplete on Settings inputs to prevent password managers from interfering.
+
 ## v0.9.11
 - **Debug**: Added explicit startup logging to diagnose update issues.
 
