@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.9.10
+- **Fix**: Forced Docker build cache invalidation to ensure new files are copied during update.
+
 ## v0.9.9
 - **Fix**: Added cache-control headers to prevent browsers from showing outdated versions of the application.
 

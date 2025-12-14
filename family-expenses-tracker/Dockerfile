@@ -12,6 +12,9 @@ RUN pip install --no-cache-dir --break-system-packages fastapi uvicorn sqlmodel 
 
 WORKDIR /app
 
+# Force cache invalidation
+ENV BUILD_DATE="2025-12-14-v0.9.10"
+
 # Copy data for add-on
 COPY . /app/
 
