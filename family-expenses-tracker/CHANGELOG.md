@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.9.8
+- **Fix**: Resolved a critical issue causing the application to fail to load (missing variable `editingTrip`).
+
 ## v0.9.7
 - **Feature**: Added ability to rename Trips in the Settings / Trips view.
 - **Feature**: Added **Load More** button to Transactions list to view history beyond the latest 100.
