@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.9.11
+- **Debug**: Added explicit startup logging to diagnose update issues.
+
 ## v0.9.10
 - **Fix**: Forced Docker build cache invalidation to ensure new files are copied during update.
 

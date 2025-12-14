@@ -8,6 +8,9 @@ from routers import users, accounts, categories, transactions, imports, trips, s
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
+    print("--------------------------------------------------")
+    print("   FAMILY EXPENSES TRACKER - VERSION v0.9.11")
+    print("--------------------------------------------------")
     create_db_and_tables()
     yield
     # Shutdown
