@@ -21,94 +21,136 @@ def create_db_and_tables():
 
 def migrate_db():
     with Session(engine) as session:
-        # Migration 1: Add parent_id to category
+        # Enable Foreign Keys
+        session.exec(text("PRAGMA foreign_keys = ON"))
+
+        # 1. Create User table
         try:
-            # Check for column existence
-            columns = session.exec(text("PRAGMA table_info(category)")).all()
-            col_names = [c.name for c in columns]
-            if 'parent_id' not in col_names:
-                session.exec(text("ALTER TABLE category ADD COLUMN parent_id INTEGER"))
+            tables = session.exec(text("SELECT name FROM sqlite_master WHERE type='table' AND name='user'")).all()
+            if not tables:
+                session.exec(text("CREATE TABLE IF NOT EXISTS user (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)"))
                 session.commit()
-                print("Migrated: Added parent_id to category")
+                print("Migrated: Created user table (Manual)")
         except Exception as e:
-            print(f"Migration 1 Failed: {e}")
+            print(f"Migration User Failed: {e}")
 
-        # Migration 2: Add is_shared to account
+        # 2. Create Category table
         try:
-            columns = session.exec(text("PRAGMA table_info(account)")).all()
-            col_names = [c.name for c in columns]
-            if 'is_shared' not in col_names:
-                session.exec(text("ALTER TABLE account ADD COLUMN is_shared BOOLEAN DEFAULT 0"))
+            tables = session.exec(text("SELECT name FROM sqlite_master WHERE type='table' AND name='category'")).all()
+            if not tables:
+                session.exec(text("CREATE TABLE IF NOT EXISTS category (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, icon TEXT, parent_id INTEGER, FOREIGN KEY(parent_id) REFERENCES category(id))"))
                 session.commit()
-                print("Migrated: Added is_shared to account")
+                print("Migrated: Created category table (Manual)")
         except Exception as e:
-            print(f"Migration 2 Failed: {e}")
+            print(f"Migration Category Failed: {e}")
 
-        # Migration 3: Add is_family to transaction
+        # 3. Create Trip table
         try:
-            # Try 'transaction' table
-            table_name = 'transaction'
-            columns = session.exec(text(f"PRAGMA table_info('{table_name}')")).all()
-            
-            # If empty, maybe table doesn't exist yet? (Should exist if user has data)
-            # If it exists, check columns
-            if columns:
-                col_names = [c.name for c in columns]
-                if 'is_family' not in col_names:
-                    session.exec(text(f"ALTER TABLE '{table_name}' ADD COLUMN is_family BOOLEAN DEFAULT 0"))
-                    session.commit()
-                    print("Migrated: Added is_family to transaction")
-            else:
-                print("Migration 3: Transaction table not found in PRAGMA?")
-
-        except Exception as e:
-            print(f"Migration 3 Failed: {e}")
-
-        # Migration 4: Create trip table
-        try:
-            # Check if trip table exists
             tables = session.exec(text("SELECT name FROM sqlite_master WHERE type='table' AND name='trip'")).all()
             if not tables:
                 session.exec(text("CREATE TABLE IF NOT EXISTS trip (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)"))
                 session.commit()
-                print("Migrated: Created trip table")
+                print("Migrated: Created trip table (Manual)")
         except Exception as e:
-            print(f"Migration 4 Failed: {e}")
+            print(f"Migration Trip Failed: {e}")
 
-        # Migration 5: Add trip_id to transaction
+        # 4. Create Account table
         try:
-            table_name = 'transaction'
-            columns = session.exec(text(f"PRAGMA table_info('{table_name}')")).all()
-            if columns:
-                col_names = [c.name for c in columns]
-                if 'trip_id' not in col_names:
-                    session.exec(text(f"ALTER TABLE '{table_name}' ADD COLUMN trip_id INTEGER"))
-                    session.commit()
-                    print("Migrated: Added trip_id to transaction")
+            tables = session.exec(text("SELECT name FROM sqlite_master WHERE type='table' AND name='account'")).all()
+            if not tables:
+                session.exec(text("CREATE TABLE IF NOT EXISTS account (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, user_id INTEGER, is_shared BOOLEAN DEFAULT 0, FOREIGN KEY(user_id) REFERENCES user(id))"))
+                session.commit()
+                print("Migrated: Created account table (Manual)")
         except Exception as e:
-            print(f"Migration 5 Failed: {e}")
+            print(f"Migration Account Failed: {e}")
 
-        # Migration 6: Create setting table
+        # 5. Create Transaction table
         try:
-            # Check if setting table exists
+            tables = session.exec(text("SELECT name FROM sqlite_master WHERE type='table' AND name='transaction'")).all()
+            if not tables:
+                session.exec(text("""
+                    CREATE TABLE IF NOT EXISTS "transaction" (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                        date DATE, 
+                        amount FLOAT, 
+                        description TEXT, 
+                        category_id INTEGER, 
+                        account_id INTEGER, 
+                        user_id INTEGER, 
+                        trip_id INTEGER, 
+                        is_family BOOLEAN DEFAULT 0,
+                        FOREIGN KEY(category_id) REFERENCES category(id),
+                        FOREIGN KEY(account_id) REFERENCES account(id),
+                        FOREIGN KEY(user_id) REFERENCES user(id),
+                        FOREIGN KEY(trip_id) REFERENCES trip(id)
+                    )
+                """))
+                session.commit()
+                print("Migrated: Created transaction table (Manual)")
+        except Exception as e:
+            print(f"Migration Transaction Failed: {e}")
+
+        # 6. Create Setting table
+        try:
             tables = session.exec(text("SELECT name FROM sqlite_master WHERE type='table' AND name='setting'")).all()
             if not tables:
-                # Use IF NOT EXISTS for safety
                 session.exec(text("CREATE TABLE IF NOT EXISTS setting (key TEXT PRIMARY KEY, value TEXT)"))
                 session.commit()
-                print("Migrated: Created setting table")
+                print("Migrated: Created setting table (Manual)")
         except Exception as e:
-            print(f"Migration 6 Failed: {e}")
+            print(f"Migration Setting Failed: {e}")
 
-        # Migration 7: Create importrule table
+        # 7. Create ImportRule table
         try:
             tables = session.exec(text("SELECT name FROM sqlite_master WHERE type='table' AND name='importrule'")).all()
             if not tables:
                 session.exec(text("CREATE TABLE IF NOT EXISTS importrule (id INTEGER PRIMARY KEY AUTOINCREMENT, pattern TEXT NOT NULL, category_id INTEGER NOT NULL, FOREIGN KEY(category_id) REFERENCES category(id))"))
                 session.commit()
-                print("Migrated: Created importrule table")
+                print("Migrated: Created importrule table (Manual)")
         except Exception as e:
-            print(f"Migration 7 Failed: {e}")
+            print(f"Migration ImportRule Failed: {e}")
+
+        # --- Alterations for existing tables (Backwards Compatibility) ---
+
+        # Add parent_id to category if missing
+        try:
+            columns = session.exec(text("PRAGMA table_info(category)")).all()
+            if columns:
+                col_names = [c.name for c in columns]
+                if 'parent_id' not in col_names:
+                    session.exec(text("ALTER TABLE category ADD COLUMN parent_id INTEGER"))
+                    session.commit()
+                    print("Migrated: Added parent_id to category")
+        except Exception as e:
+            print(f"Migration Alter Category Failed: {e}")
+
+        # Add is_shared to account if missing
+        try:
+            columns = session.exec(text("PRAGMA table_info(account)")).all()
+            if columns:
+                col_names = [c.name for c in columns]
+                if 'is_shared' not in col_names:
+                    session.exec(text("ALTER TABLE account ADD COLUMN is_shared BOOLEAN DEFAULT 0"))
+                    session.commit()
+                    print("Migrated: Added is_shared to account")
+        except Exception as e:
+            print(f"Migration Alter Account Failed: {e}")
+
+        # Add is_family and trip_id to transaction if missing
+        try:
+            columns = session.exec(text("PRAGMA table_info('transaction')")).all()
+            if columns:
+                col_names = [c.name for c in columns]
+                if 'is_family' not in col_names:
+                    session.exec(text("ALTER TABLE 'transaction' ADD COLUMN is_family BOOLEAN DEFAULT 0"))
+                    session.commit()
+                    print("Migrated: Added is_family to transaction")
+                if 'trip_id' not in col_names:
+                    session.exec(text("ALTER TABLE 'transaction' ADD COLUMN trip_id INTEGER"))
+                    session.commit()
+                    print("Migrated: Added trip_id to transaction")
+        except Exception as e:
+            print(f"Migration Alter Transaction Failed: {e}")
 
 def seed_db():
     from models import Category

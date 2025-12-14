@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.9.16
+- **Fix**: Implemented complete manual database initialization to resolve "no such table" errors on corrupted or initialized-failed databases.
+
 ## v0.9.15
 - **Fix**: Added explicit database migrations for `importrule` and `trip` tables to fix startup errors on existing databases.
 
