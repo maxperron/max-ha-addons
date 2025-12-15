@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.9.23
+- **UX**: Further improved "scroll jump" prevention by applying new auto-categorization rules to the list instantly without a full page reload.
+
 ## v0.9.22
 - **UX**: Optimized transaction category updates to prevent page scroll jumps. Now updates in-place without reloading the list.
 

@@ -21,7 +21,7 @@
             <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
                 Family Expenses
             </h1>
-            <div class="text-xs text-slate-500 mt-1">v0.9.22</div>
+            <div class="text-xs text-slate-500 mt-1">v0.9.23</div>
         </div>
 
         <nav class="flex-1 px-4 py-4 space-y-2">
@@ -1694,10 +1694,20 @@
                     });
 
                     if (res.ok) {
-                        this.fetchImportRules(); // Refresh rules
-                        // Also refresh transactions because backend might have applied rule to others!
-                        this.fetchTransactions();
-                        // alert("Rule created and applied!"); // Optional, maybe too noisy
+                        this.fetchImportRules(); // Refresh rules list silently
+
+                        // Optimistically apply rule to all currently loaded transactions
+                        // This avoids reloading the list and losing scroll position
+                        const pattern = transaction.description;
+                        this.transactions.forEach(t => {
+                            if (t.description === pattern) {
+                                t.category_id = categoryId;
+                                t.category_name = category.name;
+                            }
+                        });
+
+                        // No full refresh needed!
+                        // this.fetchTransactions();
                     }
                 }
             },
