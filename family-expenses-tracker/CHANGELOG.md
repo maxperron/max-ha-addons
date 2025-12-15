@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.9.19
+- **UI**: Added missing "Load More" button to the transactions list to enable pagination.
+
 ## v0.9.18
 - **CRITICAL FIX**: Fixed major bug where database initialization code was never running. This resolves the persistent "no such table" errors.
 
