@@ -35,7 +35,7 @@ import os
 
 # ... imports ...
 
-app = FastAPI(title="Family Expenses Tracker")
+app = FastAPI(title="Family Expenses Tracker", lifespan=lifespan)
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")

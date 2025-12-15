@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.9.18
+- **CRITICAL FIX**: Fixed major bug where database initialization code was never running. This resolves the persistent "no such table" errors.
+
 ## v0.9.17
 - **Debug**: Added aggressive startup diagnostics to identify database file location and table existence issues.
 
