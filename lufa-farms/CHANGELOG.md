@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.8
+
+- Fix: Implemented manual loading of S6 environment variables in Python. This bypasses the need for `with-contenv` (which causes errors) while still ensuring `SUPERVISOR_TOKEN` is available.
+
 ## 0.2.7
 
 - Fix: Added fallback check for `HASSIO_TOKEN` if `SUPERVISOR_TOKEN` is missing.

@@ -23,18 +23,36 @@ def get_config():
             return json.load(f)
     return {}
 
+def load_s6_environment():
+    """Manually load S6 environment variables since we are not using with-contenv."""
+    s6_env_dir = "/var/run/s6/container_environment"
+    if os.path.isdir(s6_env_dir):
+        logger.info(f"Loading S6 environment from {s6_env_dir}")
+        for var_name in os.listdir(s6_env_dir):
+            try:
+                with open(os.path.join(s6_env_dir, var_name), 'r') as f:
+                    value = f.read().strip()
+                # Only set if not already set (preserve runtime overrides)
+                if var_name not in os.environ:
+                    os.environ[var_name] = value
+            except Exception as e:
+                logger.warning(f"Failed to load env var {var_name}: {e}")
+    else:
+        logger.warning(f"S6 environment directory {s6_env_dir} not found.")
+
 def main():
+    # Load S6 env vars first
+    load_s6_environment()
+    
     logger.info("Starting Lufa Farms Add-on")
     
     # DEBUG: Log available environment variables
-    logger.info(f"Environment variables: {list(os.environ.keys())}")
+    logger.info(f"Environment variables keys: {list(os.environ.keys())}")
+    
     if 'SUPERVISOR_TOKEN' in os.environ:
         logger.info("SUPERVISOR_TOKEN is present.")
     else:
         logger.warning("SUPERVISOR_TOKEN is MISSING.")
-        
-    if 'HASSIO_TOKEN' in os.environ:
-        logger.info("HASSIO_TOKEN is present.")
         
     config = get_config()
     email = config.get('email')
