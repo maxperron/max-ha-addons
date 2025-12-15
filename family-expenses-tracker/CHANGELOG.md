@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.9.20
+- **UI**: Removed the "No categories yet" footer text that was incorrectly appearing on all pages.
+
 ## v0.9.19
 - **UI**: Added missing "Load More" button to the transactions list to enable pagination.
 
