@@ -3,6 +3,7 @@ import os
 import json
 import logging
 import time
+import requests
 import paho.mqtt.client as mqtt
 
 logger = logging.getLogger(__name__)
@@ -20,10 +21,6 @@ class LufaMQTTClient:
         
     def connect(self):
         """Connects to the MQTT broker."""
-        # Priorities:
-        # 1. Manual config from options
-        # 2. Service config from env vars (mqtt:want)
-        
         host = self.config.get('mqtt_host')
         port = self.config.get('mqtt_port')
         username = self.config.get('mqtt_username')
@@ -31,18 +28,20 @@ class LufaMQTTClient:
         
         # Check for service injection if manual config is missing/empty
         if not host:
-            logger.info("No manual MQTT host configured. Checking for Supervisor MQTT service...")
-            host = os.environ.get('MQTT_HOST')
-            port = os.environ.get('MQTT_PORT')
-            username = os.environ.get('MQTT_USER')
-            password = os.environ.get('MQTT_PASSWORD')
+            logger.info("No manual MQTT host configured. Checking Supervisor API for MQTT service...")
+            service_config = self._get_supervisor_mqtt_config()
+            if service_config:
+                host = service_config.get('host')
+                port = service_config.get('port')
+                username = service_config.get('username')
+                password = service_config.get('password')
+                logger.info(f"Discovered MQTT config from Supervisor: {host}:{port}")
             
         if not host:
             logger.warning("No MQTT configuration found. MQTT features will be disabled.")
             return False
 
         try:
-            # Clean up port
             if port:
                 port = int(port)
             else:
@@ -64,6 +63,34 @@ class LufaMQTTClient:
         except Exception as e:
             logger.error(f"Failed to connect to MQTT broker: {e}")
             return False
+
+    def _get_supervisor_mqtt_config(self):
+        """Fetches MQTT configuration from the Supervisor API."""
+        token = os.environ.get('SUPERVISOR_TOKEN')
+        if not token:
+            logger.warning("SUPERVISOR_TOKEN not found. Cannot query Supervisor API.")
+            return None
+            
+        url = "http://supervisor/services/mqtt"
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json"
+        }
+        
+        try:
+            response = requests.get(url, headers=headers)
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('result') == 'ok':
+                    return data.get('data')
+            elif response.status_code == 404:
+                 logger.warning("MQTT service not found in Supervisor (is Mosquitto installed/running?)")
+            
+            logger.debug(f"Supervisor API returned {response.status_code}: {response.text}")
+        except Exception as e:
+            logger.error(f"Error querying Supervisor API: {e}")
+            
+        return None
 
     def _on_connect(self, client, userdata, flags, rc, properties=None):
         if rc == 0:

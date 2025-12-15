@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.2
+
+- Fix: Updated MQTT client to fetch configuration directly from Supervisor API (`http://supervisor/services/mqtt`). This fixes the "No MQTT configuration found" error when using auto-discovery.
+
 ## 0.2.1
 
 - Fix: Missing `mqtt_client.py` in Docker image causing ModuleNotFoundError.
