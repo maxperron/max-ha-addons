@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.6
+
+- Fix: Restored `init: false` in `config.yaml`. This resolves the "s6-overlay-suexec: fatal: can only run as pid 1" error by preventing Supervisor from interfering with the base image's S6 init system.
+
 ## 0.2.5
 
 - Fix: Removed `with-contenv` from startup script to resolve "pid 1" errors and environment variable loading issues.
