@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.11 (Fixes #3)
+
+- Feature: Exposed `scan_interval` in the add-on configuration. Users can now customize how often data is fetched (default: 900 seconds).
+
 ## 0.2.10 (Fixes #2)
 
 - Feature: Implemented automatic session renewal. If the session expires, the add-on now detects it, logs a warning ("Session Expired..."), and automatically re-authenticates.
