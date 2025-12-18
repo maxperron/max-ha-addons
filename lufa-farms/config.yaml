@@ -1,6 +1,6 @@
 name: "Lufa Farms"
 description: "Track your Lufa Farms deliveries in Home Assistant"
-version: "0.2.11"
+version: "0.2.12"
 slug: "lufa_farms"
 init: false
 hassio_api: true
@@ -15,6 +15,7 @@ options:
   email: ""
   password: ""
   scan_interval: 900
+  delivery_days: []
   mqtt_host: ""
   mqtt_port: 1883
   mqtt_username: ""
@@ -23,6 +24,7 @@ schema:
   email: str
   password: str
   scan_interval: int?
+  delivery_days: [str]?
   mqtt_host: str?
   mqtt_port: int?
   mqtt_username: str?

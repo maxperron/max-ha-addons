@@ -73,30 +73,58 @@ def main():
     # Scan interval in seconds (default 15 mins)
     scan_interval = config.get('scan_interval', 900)
     
+    # Track last update for off-day keep-alive
+    last_update_date = None
+    
     while True:
         try:
-            logger.info("Fetching update...")
-            order_id = lufa_client.get_current_order_id()
+            # Determine if we should update based on delivery days
+            import datetime
+            today = datetime.date.today()
+            day_name = today.strftime("%A")
+            delivery_days = config.get('delivery_days', [])
             
-            if order_id:
-                logger.info(f"Found active Order ID: {order_id}")
-                details = lufa_client.get_order_details(order_id)
-                if details:
-                    logger.info("Order details retrieved successfully.")
-                    status = details.get('status')
-                    eta = details.get('eta')
-                    amount = details.get('order_amount')
-                    
-                    logger.info(f"Status: {status}, ETA: {eta}, Amount: {amount}")
-                    
-                    # Publish via MQTT
-                    mqtt_client.publish_state(details, order_id)
-
+            should_update = False
+            
+            if not delivery_days:
+                # No specific days configured, always update
+                should_update = True
+            elif day_name in delivery_days:
+                # Today is a delivery day, update
+                should_update = True
+            elif last_update_date != today:
+                # Off-day, but run once per day for keep-alive
+                logger.info(f"Off-day ({day_name}): Performing daily keep-alive update.")
+                should_update = True
             else:
-                logger.info("No active order found.")
-                # Optionally clear state or publish empty/idle state
-                # mqtt_client.publish_state({'status': 'No Active Order'}, None)
+                # Off-day and already updated
+                logger.info(f"Off-day ({day_name}): Skipping update (next daily check tomorrow).")
+                should_update = False
+
+            if should_update:
+                logger.info("Fetching update...")
+                order_id = lufa_client.get_current_order_id()
                 
+                if order_id:
+                    logger.info(f"Found active Order ID: {order_id}")
+                    details = lufa_client.get_order_details(order_id)
+                    if details:
+                        logger.info("Order details retrieved successfully.")
+                        status = details.get('status')
+                        eta = details.get('eta')
+                        amount = details.get('order_amount')
+                        
+                        logger.info(f"Status: {status}, ETA: {eta}, Amount: {amount}")
+                        
+                        # Publish via MQTT
+                        mqtt_client.publish_state(details, order_id)
+                else:
+                    logger.info("No active order found.")
+                    # Optionally clear state or publish empty/idle state
+                    # mqtt_client.publish_state({'status': 'No Active Order'}, None)
+                
+                last_update_date = today
+
         except Exception as e:
             logger.error(f"Error in main loop: {e}")
             

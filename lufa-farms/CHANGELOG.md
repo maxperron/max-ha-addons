@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.12 (Fixes #4)
+
+- Feature: Added `delivery_days` configuration. You can now specify which days to fetch delivery data (e.g., `["Thursday"]`). On other days, the add-on will only connect once per day to keep the entities alive in Home Assistant.
+
 ## 0.2.11 (Fixes #3)
 
 - Feature: Exposed `scan_interval` in the add-on configuration. Users can now customize how often data is fetched (default: 900 seconds).
