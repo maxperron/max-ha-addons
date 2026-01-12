@@ -16,10 +16,14 @@ SCOPES = [
 ]
 
 class GSheetsSync:
-    def __init__(self, service_account_json_str, sheet_id):
+    def __init__(self, service_account_payload, sheet_id):
         self.sheet_id = sheet_id
         try:
-            self.creds_dict = json.loads(service_account_json_str)
+            if isinstance(service_account_payload, dict):
+                self.creds_dict = service_account_payload
+            else:
+                self.creds_dict = json.loads(service_account_payload)
+            
             self.creds = ServiceAccountCredentials.from_json_keyfile_dict(self.creds_dict, SCOPES)
             self.client = gspread.authorize(self.creds)
             self.sheet = self.client.open_by_key(self.sheet_id)

@@ -42,10 +42,10 @@ class IntervalsSync:
                 record = {
                     "Date": act.get("start_date_local", "")[:10], # Extract YYYY-MM-DD
                     "Activity_Type": act.get("type", ""),
-                    "Duration_Mins": act.get("moving_time", 0) / 60,
-                    "Distance_Km": act.get("distance", 0) / 1000,
+                    "Duration_Mins": (act.get("moving_time") or 0) / 60,
+                    "Distance_Km": (act.get("distance") or 0) / 1000,
                     "Intervals_Description": desc, # Structured workout text usually here or in 'icu_training_load_data'
-                    "Training_Load_TSS": act.get("icu_training_load", 0),
+                    "Training_Load_TSS": act.get("icu_training_load") or 0,
                     "Average_HR": act.get("average_heartrate", ""),
                     "RPE": act.get("perceived_exertion", ""),
                     "Compliance_Score": "", # Intervals logic for compliance not direct in list usually

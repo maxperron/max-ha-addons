@@ -18,12 +18,20 @@ class GarminSync:
             logger.info("Garmin Connect login successful.")
         except Exception as e:
             logger.error(f"Garmin Connect login failed: {e}")
-            raise # Let main handle retry/fail
+            self.client = None # Ensure it is None if failed
+            # Do not raise here, allow get_daily_stats to handle graceful exit or retry
+
 
     def get_daily_stats(self):
         """
         Fetches today's summary.
         """
+        if not self.client:
+            logger.error("Garmin client is not authenticated. Attempting login...")
+            self.login()
+            if not self.client:
+                return []
+
         try:
             today = date.today()
             # Garmin lib often needs explicit reload if session stale, but we'll re-init class or use daemon loop in main

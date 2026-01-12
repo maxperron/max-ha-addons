@@ -41,7 +41,15 @@ def job_sync_garmin(config):
         gs = GarminSync(config["garmin_username"], config["garmin_password"])
         data = gs.get_daily_stats()
         
-        ws = GSheetsSync(json.dumps(config["google_sheets_service_account_json"]), config["google_sheet_id"])
+        # Prepare Service Account JSON: it might be a dict or a string depending on how HA parsed it
+        service_account = config["google_sheets_service_account_json"]
+        if isinstance(service_account, str):
+            # If it's a string, it might be JSON string or just a string.
+            # GSheetsSync expects the raw value to parse itself, OR a dict.
+            # Let's pass it raw, GSheetsSync will handle safe parsing.
+            pass
+        
+        ws = GSheetsSync(service_account, config["google_sheet_id"])
         ws.sync_daily_summary(data)
         logger.info("Garmin Sync Completed.")
     except Exception as e:
@@ -57,7 +65,7 @@ def job_sync_intervals(config):
         in_svc = IntervalsSync(config["intervals_api_key"], config["intervals_athlete_id"])
         data = in_svc.get_activities()
         
-        ws = GSheetsSync(json.dumps(config["google_sheets_service_account_json"]), config["google_sheet_id"])
+        ws = GSheetsSync(config["google_sheets_service_account_json"], config["google_sheet_id"])
         ws.sync_workout_details(data)
         logger.info("Intervals Sync Completed.")
     except Exception as e:
@@ -74,7 +82,7 @@ def job_sync_loseit(config):
         data = ls.scrape_recent_history()
         
         if data:
-            ws = GSheetsSync(json.dumps(config["google_sheets_service_account_json"]), config["google_sheet_id"])
+            ws = GSheetsSync(config["google_sheets_service_account_json"], config["google_sheet_id"])
             ws.sync_nutrition_log(data)
             logger.info("LoseIt Sync Completed.")
         else:
