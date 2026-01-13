@@ -12,12 +12,21 @@ class GarminSync:
         self.login()
 
     def login(self):
+        if not self.email or not self.password:
+            logger.error("Garmin email or password is empty.")
+            self.client = None
+            return
+
+        # Obfuscate email for logging
+        email_masked = f"{self.email[:3]}***" if self.email and len(self.email) > 3 else "Unknown"
+        logger.info(f"Attempting login for Garmin user: {email_masked}")
+
         try:
             self.client = Garmin(self.email, self.password)
             self.client.login()
             logger.info("Garmin Connect login successful.")
         except Exception as e:
-            logger.error(f"Garmin Connect login failed: {e}")
+            logger.error(f"Garmin Connect login failed: {e}", exc_info=True)
             self.client = None # Ensure it is None if failed
             # Do not raise here, allow get_daily_stats to handle graceful exit or retry
 

@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.3
+- **Debug**: Enhanced Garmin logging to print obscured email and full exception traceback for login failures.
+
 ## 1.0.2
 - **Fix**: Resolved "NoneType is not subscriptable" error in Garmin Sync by improving error handling when login fails.
 - **Fix**: Resolved "unsupported operand type" error in Intervals Sync by handling null values for duration/distance.
