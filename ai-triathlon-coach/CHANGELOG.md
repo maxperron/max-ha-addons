@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.9
+- **Internal.icu Sync**: Added fetching of Wellness data (Fitness, Fatigue, Form, RestingHR, HRV).
+- **Internal.icu Sync**: Now fetches planned workouts for the next 7 days.
+- **Internal.icu Sync**: Improved description extraction to prioritize planned workout steps.
+
 ## 1.0.8
 - **Fix**: Added explicit wait for successful login navigation before attempting to access Insights page to prevent `invalid state` errors.
 

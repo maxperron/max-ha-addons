@@ -32,6 +32,138 @@ class GSheetsSync:
             logger.error(f"Failed to connect to Google Sheets: {e}")
             raise
 
+    def sync_wellness_data(self, wellness_data):
+        """
+        Upserts wellness data (CTL, ATL, etc.) into Daily_Summary.
+        Columns: Date, Intervals_CTL, Intervals_ATL, Intervals_RampRate, Intervals_RestingHR, Intervals_HRV
+        """
+        if not wellness_data:
+            return
+
+        try:
+            ws = self.client.open_by_key(self.sheet_id).worksheet("Daily_Summary")
+            
+            # Ensure headers exist
+            headers = ws.row_values(1)
+            required_cols = ["Date", "Intervals_CTL", "Intervals_ATL", "Intervals_RampRate", "Intervals_RestingHR", "Intervals_HRV"]
+            
+            # Simple header update if missing (append them)
+            # In a robust system we might want to check index, but for now let's just create a map.
+            # We assume "Date" is present from previous syncs.
+            
+            # We'll rely on the same 'upsert_row' logic logic pattern:
+            # 1. Get all dates
+            # 2. For each wellness entry, find row or append
+            
+            # Map headers
+            header_map = {col: i+1 for i, col in enumerate(headers)}
+            
+            # Add missing headers if any
+            new_headers = []
+            for col in required_cols:
+                if col not in header_map:
+                    new_headers.append(col)
+            
+            if new_headers:
+                # Add to next available columns
+                start_col = len(headers) + 1
+                # Bulk update headers
+                # gspread update cells logic or just single updates. 
+                # Doing single updates for simplicity of "append col" logic is tricky in gspread without raw usage.
+                # We'll just define the specific cells.
+                for i, col_name in enumerate(new_headers):
+                    ws.update_cell(1, start_col + i, col_name)
+                    header_map[col_name] = start_col + i
+
+            # Refetch all data to get locations
+            all_records = ws.get_all_records()
+            # This returns a list of dicts. We need row numbers. 
+            # Best to just get column A (Dates)
+            date_col_values = ws.col_values(header_map["Date"]) # 1-based list
+            
+            # date_map: "YYYY-MM-DD" -> row_index (1-based)
+            date_map = {}
+            for i, d in enumerate(date_col_values):
+                # skip header
+                if i == 0: continue
+                if d:
+                    date_map[d] = i + 1
+
+            for w in wellness_data:
+                d = w["date"]
+                row_idx = date_map.get(d)
+                
+                # Prepare updates
+                updates = [] 
+                
+                # Helper to add update if key exists
+                def add_update(key, sheet_col_name):
+                    val = w.get(key)
+                    if val is not None and sheet_col_name in header_map:
+                        updates.append((header_map[sheet_col_name], val))
+
+                add_update("ctl", "Intervals_CTL")
+                add_update("atl", "Intervals_ATL")
+                add_update("rampRate", "Intervals_RampRate")
+                add_update("restingHR", "Intervals_RestingHR")
+                add_update("hrv", "Intervals_HRV")
+
+                if row_idx:
+                    # Update existing row
+                    for col_idx, val in updates:
+                        ws.update_cell(row_idx, col_idx, val)
+                    logger.info(f"Updated wellness for {d} at row {row_idx}")
+                else:
+                    # Append new row
+                    # We need to build a full row array to append properly, or just append and then update?
+                    # Appending a dict is easier if headers match.
+                    # gspread append_row
+                    row_data = [d] # Date is first
+                    # We need to construct a sparse row matching the current sheet width
+                    # This is complex. Easiest is to append the date, get the new row index, then update cells.
+                    ws.append_row([d])
+                    new_row_idx = len(date_col_values) + 1 # simplistic but usually works if no gaps
+                    # Actually get the new index properly?
+                    # Safer: append_row returns the range? No, in recent gspread it might.
+                    # Let's verify row count.
+                    # Actually, let's just cache the new index
+                    # date_col_values updated? No.
+                    
+                    # Let's assume append adds to bottom.
+                    # Re-read or just guess? 
+                    # Let's use append_time logic:
+                    # If we append, we can assume it's at the end.
+                    # But if we have multiple new entries, we need to track.
+                    
+                    # Wait, simpler approach:
+                    # Use batch update or cell update.
+                    # For a new row, we can assume it is at (last_row + 1).
+                    # But strictly, we should just let the main 'daily stats' job create usage rows if possible, 
+                    # but here we might be adding a row for a rest day that has no Garmin data yet (or maybe it does).
+                    # If it has Garmin data, it's in `date_map`.
+                    # If not, we append.
+                    
+                    # Let's just append the row with the data we have.
+                    # We can construct a row list of empty strings + our values.
+                    max_col = max(header_map.values())
+                    new_row = [""] * max_col
+                    new_row[header_map["Date"]-1] = d
+                    
+                    for col_idx, val in updates:
+                        new_row[col_idx-1] = val
+                    
+                    ws.append_row(new_row)
+                    # Update our local map so we don't append duplicate if 'wellness_data' has dups (unlikely)
+                    date_col_values.append(d)
+                    date_map[d] = len(date_col_values) # +1? No, logic above: enumerate(date_col_values) starts 0. row_idx is i+1.
+                    # If len was 10, append makes it 11. 
+                    
+                    logger.info(f"Appended wellness for {d}")
+
+        except Exception as e:
+            logger.error(f"Error syncing wellness to GSheets: {e}")
+            raise
+
     @retry(stop=stop_after_attempt(3), wait=wait_fixed(5))
     def _get_worksheet(self, title):
         try:

@@ -40,20 +40,27 @@ class IntervalsSync:
                 desc = act.get("description", "")
                 
                 record = {
+                
+                clean_activities.append({
                     "Date": act.get("start_date_local", "")[:10], # Extract YYYY-MM-DD
                     "Activity_Type": act.get("type", ""),
                     "Duration_Mins": (act.get("moving_time") or 0) / 60,
                     "Distance_Km": (act.get("distance") or 0) / 1000,
-                    "Intervals_Description": desc, # Structured workout text usually here or in 'icu_training_load_data'
+                    "Intervals_Description": act.get("description", ""), # Structured workout text usually here or in 'icu_training_load_data'
                     "Training_Load_TSS": act.get("icu_training_load") or 0,
                     "Average_HR": act.get("average_heartrate", ""),
                     "RPE": act.get("perceived_exertion", ""),
                     "Compliance_Score": "", # Intervals logic for compliance not direct in list usually
-                    "Source": "Intervals.icu"
-                }
-                records.append(record)
-            
-            return records
+                    "moving_time": (act.get("moving_time") or 0),
+                    "distance": (act.get("distance") or 0),
+                    "icu_training_load": (act.get("icu_training_load") or 0),
+                    # data["description"] is the "comment" on the completed activity
+                    # data["workout_doc"]["description"] is the structured workout description (steps)
+                    # We prefer the planned description if available, else the comment.
+                    "description": act.get("workout_doc", {}).get("description", act.get("description", "")),
+                    "source": "Intervals.icu"
+                })
+            return clean_activities
             
         except Exception as e:
             logger.error(f"Error fetching Intervals.icu data: {e}")

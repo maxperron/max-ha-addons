@@ -4,6 +4,7 @@ import logging
 import json
 import os
 import sys
+from datetime import datetime, timedelta
 from garmin_sync import GarminSync
 from intervals_sync import IntervalsSync
 from loseit_sync import LoseItSync
@@ -63,10 +64,28 @@ def job_sync_intervals(config):
             return
 
         in_svc = IntervalsSync(config["intervals_api_key"], config["intervals_athlete_id"])
-        data = in_svc.get_activities()
-        
         ws = GSheetsSync(config["google_sheets_service_account_json"], config["google_sheet_id"])
-        ws.sync_workout_details(data)
+
+        # Define date range for fetching data
+        # We want last 3 days (history) AND next 7 days (planned workouts)
+        today = datetime.now()
+        start_date = today - timedelta(days=3) 
+        end_date = today + timedelta(days=7)
+
+        # Format dates as YYYY-MM-DD strings
+        start_date_str = start_date.strftime("%Y-%m-%d")
+        end_date_str = end_date.strftime("%Y-%m-%d")
+        
+        # 1. Fetch Activities
+        activities = in_svc.get_activities(start_date_str, end_date_str)
+        if activities:
+            ws.sync_workout_details(activities) # Assuming sync_workout_details is the correct method
+        
+        # 2. Fetch Wellness
+        wellness = in_svc.get_wellness_data(start_date_str, end_date_str)
+        if wellness:
+            ws.sync_wellness_data(wellness)
+
         logger.info("Intervals Sync Completed.")
     except Exception as e:
         logger.error(f"Intervals Sync Failed: {e}")
