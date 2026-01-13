@@ -66,23 +66,43 @@ def job_sync_intervals(config):
         in_svc = IntervalsSync(config["intervals_api_key"], config["intervals_athlete_id"])
         ws = GSheetsSync(config["google_sheets_service_account_json"], config["google_sheet_id"])
 
-        # Define date range for fetching data
-        # We want last 3 days (history) AND next 7 days (planned workouts)
+        # 1. TIMEFRAMES
         today = datetime.now()
-        start_date = today - timedelta(days=3) 
-        end_date = today + timedelta(days=7)
+        
+        # History Window (Last 3 days to Today)
+        hist_start = today - timedelta(days=3)
+        hist_end = today
+        hist_start_str = hist_start.strftime("%Y-%m-%d")
+        hist_end_str = hist_end.strftime("%Y-%m-%d")
 
-        # Format dates as YYYY-MM-DD strings
-        start_date_str = start_date.strftime("%Y-%m-%d")
-        end_date_str = end_date.strftime("%Y-%m-%d")
+        # Future Window (Tomorrow to T+7)
+        # We can include today in future to catch today's planned workout if not completed yet?
+        # Let's start from today for planned, so we see what is remaining.
+        future_start = today
+        future_end = today + timedelta(days=7)
+        future_start_str = future_start.strftime("%Y-%m-%d")
+        future_end_str = future_end.strftime("%Y-%m-%d")
         
-        # 1. Fetch Activities
-        activities = in_svc.get_activities(start_date_str, end_date_str)
+        # 2. FETCH HISTORY (Activities & Wellness)
+        # A. Actual Activities
+        activities = in_svc.get_activities(hist_start_str, hist_end_str)
+        
+        # B. Planned Workouts (Forecast)
+        planned = in_svc.get_planned_workouts(future_start_str, future_end_str)
+        
+        # Combine Workouts (Upserting to same sheet)
+        all_workouts = []
         if activities:
-            ws.sync_workout_details(activities) # Assuming sync_workout_details is the correct method
+            all_workouts.extend(activities)
+        if planned:
+            all_workouts.extend(planned)
+            
+        if all_workouts:
+            ws.sync_workout_details(all_workouts)
         
-        # 2. Fetch Wellness
-        wellness = in_svc.get_wellness_data(start_date_str, end_date_str)
+        # C. Wellness (History Only - predictions usually not retrievable via simple wellness ep?)
+        # User said "7 days plan was NOT for fitness fatigue..." so we stick to history for wellness.
+        wellness = in_svc.get_wellness_data(hist_start_str, hist_end_str)
         if wellness:
             ws.sync_wellness_data(wellness)
 

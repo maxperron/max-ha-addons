@@ -102,3 +102,47 @@ class IntervalsSync:
         except Exception as e:
             logger.error(f"Error fetching Intervals wellness data: {e}")
             return []
+
+    def get_planned_workouts(self, start_date_str, end_date_str):
+        """
+        Fetch planned workouts (events) for a specific date range.
+        param: start_date_str (YYYY-MM-DD), end_date_str (YYYY-MM-DD)
+        """
+        url = f"{self.base_url}/events?oldest={start_date_str}&newest={end_date_str}"
+        
+        logger.info(f"Fetching Intervals.icu planned workouts from {start_date_str} to {end_date_str}...")
+        try:
+            resp = requests.get(url, headers=self.headers)
+            resp.raise_for_status()
+            events = resp.json()
+            
+            clean_workouts = []
+            for evt in events:
+                # Filter for workouts (category usually 'WORKOUT' or type is populated)
+                # Some events might be notes or other things.
+                # Check if it has a type (Run, Ride, Swim, etc.)
+                if not evt.get("type"):
+                    continue
+                
+                # Description logic for planned workouts:
+                # Usually in 'description' field directly with structured steps text.
+                desc = evt.get("description", "")
+                
+                clean_workouts.append({
+                    "Date": evt.get("start_date_local", "")[:10],
+                    "Activity_Type": evt.get("type", ""),
+                    "Duration_Mins": (evt.get("moving_time") or 0) / 60,
+                    "Distance_Km": (evt.get("distance") or 0) / 1000,
+                    "Intervals_Description": desc, 
+                    "Training_Load_TSS": evt.get("icu_training_load") or 0,
+                    "Average_HR": "", # Planned usually doesn't have HR unless predicted?
+                    "RPE": "",
+                    "Source": "Intervals.icu (Planned)"
+                })
+            
+            logger.info(f"Fetched {len(clean_workouts)} planned workouts.")
+            return clean_workouts
+            
+        except Exception as e:
+            logger.error(f"Error fetching Intervals planned workouts: {e}")
+            return []

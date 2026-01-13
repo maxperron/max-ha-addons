@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.10
+- **Feature**: Full support for 7-day planned workout forecast using Intervals `/events` endpoint.
+- **Fix**: Correctly separated history (Activities/Wellness) from future (Planned Workouts) to avoid mixed data confusion.
+- **Fix**: Fixed issue where planned workout descriptions were missing.
+
 ## 1.0.9
 - **Internal.icu Sync**: Added fetching of Wellness data (Fitness, Fatigue, Form, RestingHR, HRV).
 - **Internal.icu Sync**: Now fetches planned workouts for the next 7 days.
