@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.6
+- **Debug**: Added detailed step-by-step logging to LoseIt scraper to diagnose navigation failures.
+- **Feature**: Enhanced CSV parser to map specific LoseIt export columns (Food Item, Meal, Macros) and generate unique IDs for safe upserts.
+
 ## 1.0.5
 - **Feature**: Updated LoseIt sync to target specific "Daily Summary" insights page and trigger CSV export via "Export to spreadsheet" link.
 
