@@ -116,31 +116,36 @@ class IntervalsSync:
             resp.raise_for_status()
             events = resp.json()
             
+            logger.info(f"Intervals /events returned {len(events)} raw items.")
+            
             clean_workouts = []
             for evt in events:
-                # Filter for workouts (category usually 'WORKOUT' or type is populated)
-                # Some events might be notes or other things.
-                # Check if it has a type (Run, Ride, Swim, etc.)
-                if not evt.get("type"):
+                # Filter for workouts. Intervals events have a 'category'.
+                # Valid categories: 'WORKOUT', 'RACE', 'NOTE'. We want 'WORKOUT'.
+                cat = evt.get("category", "")
+                
+                # Some planned workouts might just rely on data presence, but category is safest.
+                if cat != "WORKOUT":
+                    # logger.debug(f"Skipping event {evt.get('id')} with category '{cat}'")
                     continue
                 
-                # Description logic for planned workouts:
-                # Usually in 'description' field directly with structured steps text.
+                # Description logic:
+                # 'description' field contains the structured workout steps.
                 desc = evt.get("description", "")
                 
                 clean_workouts.append({
                     "Date": evt.get("start_date_local", "")[:10],
-                    "Activity_Type": evt.get("type", ""),
+                    "Activity_Type": evt.get("type", "Workout"), # Fallback if type is missing
                     "Duration_Mins": (evt.get("moving_time") or 0) / 60,
                     "Distance_Km": (evt.get("distance") or 0) / 1000,
                     "Intervals_Description": desc, 
                     "Training_Load_TSS": evt.get("icu_training_load") or 0,
-                    "Average_HR": "", # Planned usually doesn't have HR unless predicted?
+                    "Average_HR": "", 
                     "RPE": "",
                     "Source": "Intervals.icu (Planned)"
                 })
             
-            logger.info(f"Fetched {len(clean_workouts)} planned workouts.")
+            logger.info(f"Processed {len(clean_workouts)} valid planned workouts.")
             return clean_workouts
             
         except Exception as e:

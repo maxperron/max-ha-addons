@@ -1,6 +1,9 @@
 # Changelog
 
-## 1.0.10
+## 1.0.11
+- **Fix**: Relaxed filtering for planned workouts to rely on `category="WORKOUT"` instead of presence of `type`, ensuring all future workouts are captured.
+- **Fix**: Added debug logging for Intervals event processing.
+
 - **Feature**: Full support for 7-day planned workout forecast using Intervals `/events` endpoint.
 - **Fix**: Correctly separated history (Activities/Wellness) from future (Planned Workouts) to avoid mixed data confusion.
 - **Fix**: Fixed issue where planned workout descriptions were missing.
