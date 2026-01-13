@@ -45,7 +45,7 @@ class GSheetsSync:
             
             # Ensure headers exist
             headers = ws.row_values(1)
-            required_cols = ["Date", "Intervals_CTL", "Intervals_ATL", "Intervals_RampRate", "Intervals_RestingHR", "Intervals_HRV"]
+            required_cols = ["Date", "Intervals_CTL", "Intervals_ATL", "Intervals_RampRate", "Intervals_RestingHR", "Intervals_HRV", "Weight"]
             
             # Simple header update if missing (append them)
             # In a robust system we might want to check index, but for now let's just create a map.
@@ -107,6 +107,9 @@ class GSheetsSync:
                 add_update("rampRate", "Intervals_RampRate")
                 add_update("restingHR", "Intervals_RestingHR")
                 add_update("hrv", "Intervals_HRV")
+                # User requested weight from Intervals "instead of garmin"
+                # We map it to the standard "Weight" column.
+                add_update("weight", "Weight")
 
                 if row_idx:
                     # Update existing row

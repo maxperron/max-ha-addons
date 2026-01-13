@@ -91,6 +91,7 @@ class IntervalsSync:
                     "ctl": entry.get("ctl"),
                     "atl": entry.get("atl"),
                     "rampRate": entry.get("rampRate"),
+                    "weight": entry.get("weight"),
                     "restingHR": entry.get("restingHR"),
                     "hrv": entry.get("hrv"),
                     "source": "Intervals.icu"

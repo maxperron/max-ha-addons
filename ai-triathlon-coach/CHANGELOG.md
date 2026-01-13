@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.12
+- **Feature**: Added `Weight` syncing from Intervals.icu (wellness), prioritizing it over Garmin data if available.
+
 ## 1.0.11
 - **Fix**: Relaxed filtering for planned workouts to rely on `category="WORKOUT"` instead of presence of `type`, ensuring all future workouts are captured.
 - **Fix**: Added debug logging for Intervals event processing.
