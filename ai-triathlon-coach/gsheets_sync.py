@@ -143,6 +143,13 @@ class GSheetsSync:
                 new_keys = df_new.index
                 existing_keys = df_existing.index
                 
+                # Critical Fix: df_existing.update(df_new) ignores columns in df_new that are not in df_existing.
+                # We must ensure df_existing has all columns from df_new.
+                new_cols = df_new.columns.difference(df_existing.columns)
+                if not new_cols.empty:
+                    for col in new_cols:
+                        df_existing[col] = "" # or pd.NA, "" works well for GSheets
+
                 # Update loop
                 df_existing.update(df_new)
                 

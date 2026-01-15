@@ -1,6 +1,8 @@
 # Changelog
 
-## 1.0.14
+## 1.0.15
+- **Fix**: Fixed a bug where new data columns (like Intervals wellness) were not being added to existing rows if the columns didn't already exist in the sheet frame.
+
 - **Fix**: Resolved duplicate date issue in `Daily_Summary` by normalizing existing Google Sheet dates to the full format before merging.
 - **Fix**: Improved `Daily_Summary` sync to merge data (update columns) for the same date instead of replacing rows, ensuring derived columns or data from other sources are preserved.
 
