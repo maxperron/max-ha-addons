@@ -138,7 +138,7 @@ def main():
     # Schedule jobs
     schedule.every(interval).minutes.do(job_sync_garmin, config)
     schedule.every(interval).minutes.do(job_sync_intervals, config)
-    schedule.every(interval * 6).minutes.do(job_sync_loseit, config) # Scrape less often
+    schedule.every(interval).minutes.do(job_sync_loseit, config)
     
     # Run once on startup
     logger.info("Running initial sync...")

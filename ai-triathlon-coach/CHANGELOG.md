@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.13
+- **Feature**: Unified date format to "Wednesday January 14 2026" across all synced sheets.
+- **Improved**: LoseIt sync now runs on the same schedule interval as other services, instead of 6x less frequently.
+
 ## 1.0.12
 - **Feature**: Added `Weight` syncing from Intervals.icu (wellness), prioritizing it over Garmin data if available.
 

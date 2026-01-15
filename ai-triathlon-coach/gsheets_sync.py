@@ -226,6 +226,23 @@ class GSheetsSync:
             if "Last_Fetched_At" not in df_new.columns:
                  df_new["Last_Fetched_At"] = datetime.now().isoformat()
 
+            # --- Date Normalization Start ---
+            # User requested format: "Wednesday January 14 2026" (%A %B %d %Y)
+            if "Date" in df_new.columns:
+                def reformat_date(d):
+                    try:
+                        if not d: return ""
+                        # Try to parse with flexible pd.to_datetime first
+                        dt = pd.to_datetime(d, errors='coerce')
+                        if pd.isnull(dt):
+                            return str(d) # Keep original if parse fails
+                        return dt.strftime("%A %B %d %Y")
+                    except Exception:
+                        return str(d)
+
+                df_new["Date"] = df_new["Date"].apply(reformat_date)
+            # --- Date Normalization End ---
+
             # Normalization
             if not df_existing.empty:
                 # Convert key column to string to ensure matching works
