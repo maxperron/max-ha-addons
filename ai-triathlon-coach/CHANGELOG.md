@@ -1,6 +1,9 @@
 # Changelog
 
-## 1.0.16
+## 1.0.17
+- **Fix**: Updated Google Sheets write operation to strictly use `range_name='A1'` to prevent compatibility issues with `gspread` versions.
+- **Fix**: Added more explicit logging for sync operations.
+
 - **Fix**: Restored missing sync methods (`sync_daily_summary`, `sync_nutrition_log`, `sync_workout_details`) that were accidentally removed in v1.0.14.
 
 - **Fix**: Fixed a bug where new data columns (like Intervals wellness) were not being added to existing rows if the columns didn't already exist in the sheet frame.
