@@ -71,6 +71,44 @@ class GSheetsSync:
         worksheet = self._get_worksheet("Daily_Summary")
         self._upsert_data(worksheet, normalized_data, key_column="Date")
 
+    @retry(stop=stop_after_attempt(3), wait=wait_fixed(5))
+    def _get_worksheet(self, title):
+        try:
+            return self.sheet.worksheet(title)
+        except gspread.WorksheetNotFound:
+            logger.info(f"Worksheet '{title}' not found. Creating it.")
+            return self.sheet.add_worksheet(title=title, rows=1000, cols=20)
+
+    def sync_daily_summary(self, data_list):
+        """
+        Syncs a list of dictionaries to the Daily_Summary sheet.
+        Expects keys: Date, Weight, Sleep_Score, HRV_Status, Resting_HR, etc.
+        Upsert logic based on 'Date'.
+        """
+        worksheet = self._get_worksheet("Daily_Summary")
+        self._upsert_data(worksheet, data_list, key_column="Date")
+
+    def sync_nutrition_log(self, data_list):
+        """
+        Syncs nutrition data.
+        Upsert logic based on 'Date' AND 'Food_Item' AND 'Meal_Name' to avoid dupes,
+        or better, a composite key or just timestamp. 
+        For simplicity, we'll try to match on Date + Timestamp + Food_Item.
+        """
+        worksheet = self._get_worksheet("Nutrition_Log")
+        # Composite key for nutrition: Date + Timestamp + Food_Item
+        self._upsert_data(worksheet, data_list, key_column="Timestamp") 
+        
+    def sync_workout_details(self, data_list):
+        """
+        Syncs workout data.
+        Upsert logic based on 'Date' and 'Activity_Type' or a unique external ID if available.
+        For now, let's use Date + Activity_Type as a proxy for uniqueness if ID isn't clear,
+        but Intervals.icu usually has an ID. Let's assume input has unique 'intervals_id' or we rely on Date+Activity.
+        """
+        worksheet = self._get_worksheet("Workout_Details")
+        self._upsert_data(worksheet, data_list, key_column="Date")
+
     def _upsert_data(self, worksheet, new_data, key_column):
         """
         Generic upsert logic with MERGE support.

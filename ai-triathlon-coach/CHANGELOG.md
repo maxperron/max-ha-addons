@@ -1,6 +1,8 @@
 # Changelog
 
-## 1.0.15
+## 1.0.16
+- **Fix**: Restored missing sync methods (`sync_daily_summary`, `sync_nutrition_log`, `sync_workout_details`) that were accidentally removed in v1.0.14.
+
 - **Fix**: Fixed a bug where new data columns (like Intervals wellness) were not being added to existing rows if the columns didn't already exist in the sheet frame.
 
 - **Fix**: Resolved duplicate date issue in `Daily_Summary` by normalizing existing Google Sheet dates to the full format before merging.
