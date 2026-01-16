@@ -192,12 +192,30 @@ class FitbitSync:
         
         try:
             response = requests.get(url, headers=headers)
+            
+            # Handle Token Expiry
             if response.status_code == 401:
                 if self.refresh_access_token():
                    headers["Authorization"] = f"Bearer {self.access_token}"
                    response = requests.get(url, headers=headers)
                 else:
                    return None
+
+            # Handle Scope/Permission Issue (403) by trying the "Initial" token from config
+            if response.status_code == 403:
+                logger.warning("Fitbit API returned 403 Forbidden. This usually means missing Scopes (e.g. Nutrition).")
+                if self.initial_refresh_token:
+                    logger.info("Attempting to re-authorize using the 'initial_refresh_token' from configuration...")
+                    self.refresh_token = self.initial_refresh_token
+                    if self.refresh_access_token():
+                        headers["Authorization"] = f"Bearer {self.access_token}"
+                        response = requests.get(url, headers=headers)
+                    else:
+                        logger.error("Failed to re-authorize with initial token.")
+                        return None
+                else:
+                    logger.error("No initial_refresh_token available to recover from 403.")
+                    return None
             
             response.raise_for_status()
             data = response.json()

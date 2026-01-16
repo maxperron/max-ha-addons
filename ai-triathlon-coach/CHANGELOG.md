@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.26
+- **Fix**: Implemented auto-recovery from 403 Forbidden errors. If the add-on encounters a scope error (like missing nutrition access), it will automatically attempt to use the `initial_refresh_token` from the configuration to re-authenticate, ensuring config updates take effect immediately.
+
 ## 1.0.25
 - **Docs**: Updated documentation to include the required `nutrition` scope in the Fitbit authorization URL. This prevents 403 Forbidden errors when fetching water logs.
 
