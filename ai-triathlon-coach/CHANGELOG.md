@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.31
+- **Fix**: Improved robustness of Fitbit water unit detection. If the unit name is missing in the API response (returning `None`), the system now correctly falls back to a magnitude-based heuristic to determine if the value is in ounces or milliliters.
+
 ## 1.0.30
 - **Fix**: Improved Fitbit water unit detection to handle variations like "Fluid Ounce", ensuring correct conversion to ml.
 

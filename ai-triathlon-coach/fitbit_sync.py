@@ -240,18 +240,21 @@ class FitbitSync:
             if total > 0:
                 # If we have entries, check first entry unit
                 if water_entries:
-                    unit_log = water_entries[0].get('unit', {}).get('name') or water_entries[0].get('unit', {}).get('shortName')
-                    # If 'fl oz', 'cup', 'ml'
-                    # We return (total, unit_log)
-                    return (total, unit_log)
+                    unit_obj = water_entries[0].get('unit', {})
+                    unit_log = unit_obj.get('name') or unit_obj.get('shortName')
+                    
+                    if unit_log:
+                        return (total, unit_log)
                 
-                # If no entries (maybe logged via quick add?), summary has value.
-                # Heuristic: 
-                # If total > 500 -> likely ml
-                # If total < 200 -> likely oz? (200 oz is 6 liters, a lot but possible. 500 oz is 14L - impossible).
-                # So if > 200 it's likely ML.
+                # Fallback: Heuristic based on magnitude
+                # If total > 500 -> likely ml (500ml is common, 500oz is 15 Liters)
+                # If total < 200 -> likely oz (200oz is 6L, barely possible. 100oz is 3L common target).
+                # Assumption: If value < 250, it is likely Ounces or Cups, not ML.
+                # If it was ML, 99ml is very small (3oz), but possible.
+                # However, usually daily total is much higher.
+                # Let's say cutoff is 300.
                 
-                return (total, "analyzed_ml" if total > 200 else "analyzed_oz")
+                return (total, "analyzed_ml" if total > 300 else "analyzed_oz")
 
             return (0, "ml")
 
