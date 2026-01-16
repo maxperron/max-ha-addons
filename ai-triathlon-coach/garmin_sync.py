@@ -141,14 +141,17 @@ class GarminSync:
                 # Use internal 'connectapi' to hit the endpoint directly
                 # Endpoint: /usersummary-service/usersummary/hydration/log
                 # Method: PUT
-                # Body: {"valueInML": 250, "calendarDate": "YYYY-MM-DD"}
+                # Body: {"valueInML": 250, "calendarDate": "YYYY-MM-DD", "timestampLocal": "YYYY-MM-DDTHH:MM:SS"}
                 
-                today_str = date.today().isoformat()
+                now = datetime.now()
+                today_str = now.strftime("%Y-%m-%d")
+                timestamp_local = now.isoformat()
                 
                 url = "/usersummary-service/usersummary/hydration/log"
                 data = {
                     "valueInML": quantity_ml,
-                    "calendarDate": today_str
+                    "calendarDate": today_str,
+                    "timestampLocal": timestamp_local
                 }
                 
                 # Check if connectapi exists (it should in cyberjunky lib)

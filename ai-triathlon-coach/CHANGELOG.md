@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.28
+- **Fix**: Added missing `timestampLocal` field to the Garmin hydration API payload, resolving the 400 Bad Request error.
+
 ## 1.0.27
 - **Fix**: Implemented direct API call for Garmin hydration sync (`/usersummary-service/usersummary/hydration/log`) as the library wrapper method `add_hydration` was missing.
 
