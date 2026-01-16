@@ -143,27 +143,29 @@ class FitbitSync:
             weight_val = latest.get('weight')
             
             # The API returns `weight` in the unit of the Accept-Language header? 
-            # Or always metric/kg in 'weight' field and something else?
-            # From Fitbit docs: "The weight log API returns weight in the unit requested via Accept-Language header".
-            # If default en_US, it is likely LBS. UNLESS the user profile is Metric.
-            # User says "My weight is lbs in fitbit". So we assume it comes back as lbs.
-            # BUT, we can force Metric request!
-            # If we send `Accept-Language: en_GB` (which uses stones?) or `fr_FR` (KG)?
-            # Better: The 'weight' field in API response is typically raw value.
-            # Wait, there is no generic "metric" header.
-            # Let's check `BMI`. if BMI is present, we can calc?
-            # Let's blindly assume LBS for now based on user prompt, convert to KG.
-            # 1 lbs = 0.453592 kg.
+            # User confirmed it returns KG.
             
-            # However, simpler check:
-            # If the user says "My weight is lbs", and they see 180 in fitbit, they get 180 back.
-            # We convert 180 * 0.453592 = 81.6kg.
+            # The structure of `latest` usually is:
+            # {
+            #    "logId": 12345,
+            #    "weight": 81.5,
+            #    "bmi": 24.5,
+            #    "date": "2024-01-14",
+            #    "time": "08:30:00"
+            # }
             
-            # But what if I can force it?
-            # `Accept-Locale` header? 
-            # Undocumented trick: use `Accept-Language: fr_FR` usually forces metric (kg).
+            weight_val = float(latest.get('weight'))
+            date_str = latest.get('date')
+            time_str = latest.get('time')
             
-            return float(weight_val)
+            # Garmin likely needs full ISO timestamp?
+            # Or just YYYY-MM-DD? The error said 'timestamp' required.
+            # Library often expects ISO string or datetime object?
+            # Let's try to construct full ISO string if time exists, else date.
+            
+            timestamp = f"{date_str}T{time_str}" if date_str and time_str else date_str
+            
+            return (weight_val, timestamp)
 
         except Exception as e:
             logger.error(f"Fitbit API Request Failed: {e}")

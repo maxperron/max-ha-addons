@@ -134,38 +134,18 @@ def job_sync_weight(config):
         )
         
         # 2. Get Weight
-        weight_kg = fb.get_latest_weight() # We assumed it returns float KG (or converted)
-        
-        if weight_kg:
-            # 3. Upload to Garmin
-            # Need strict lbs->kg conversion? 
-            # In fitbit_sync.py we decided to return raw value. 
-            # If user said "My weight is lbs in fitbit", we need to convert here if fitbit returned lbs.
-            # Let's assume fitbit_sync returns whatever Fitbit gives.
-            # If we see value > 100 (unlikely for kg for fit triathlete? maybe), it might be lbs.
-            # Safe heuristic: 
-            # If weight > 600 (impossible lbs/kg) -> ignore?
-            # If weight > 100 kg? 100kg = 220lbs. Possible.
-            # If weight < 50? 50lbs = 22kg. Child?
+        result = fb.get_latest_weight() 
+        # Check if result is tuple or None
+        if result:
+            weight_kg, timestamp = result
             
-            # Let's trust the user's requirement: "My weight is lbs in fitbit and kg in garmin".
-            # We must convert.
-            # 1 lbs = 0.45359237 kg
-            logger.info(f"Retrieved weight from Fitbit: {weight_kg}")
-            
-            # Simple heuristic detection for safety?
-            # Or just blindly convert.
-            # If the user is 180lbs -> we send 81.6kg. Correct.
-            # If the user is 80kg -> we send 36kg. DANGEROUSLY LOW.
-            
-            # If we assume Fitbit API returns User's Unit (LBS), we should convert.
-            # However, if Fitbit API actually returned KG because of some default, we'd double convert.
-            # Let's implement conversion.
-            weight_to_upload = weight_kg * 0.45359237
-            logger.info(f"Converted {weight_kg} (assumed lbs) to {weight_to_upload:.2f} kg")
+            # User confirmed Fitbit returns KG. No conversion needed.
+            logger.info(f"Retrieved weight from Fitbit: {weight_kg} kg at {timestamp}")
             
             gs = GarminSync(config["garmin_username"], config["garmin_password"])
-            gs.add_body_composition(weight_to_upload)
+            gs.add_body_composition(weight_kg, timestamp)
+        else:
+            logger.info("No recent weight found in Fitbit.")
         else:
             logger.info("No recent weight found in Fitbit.")
 

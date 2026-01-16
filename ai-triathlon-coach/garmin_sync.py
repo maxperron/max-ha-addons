@@ -83,7 +83,7 @@ class GarminSync:
             # Try re-login once?
             return []
 
-    def add_body_composition(self, weight_kg):
+    def add_body_composition(self, weight_kg, timestamp=None):
         """
         Uploads weight (kg) to Garmin Connect.
         """
@@ -92,9 +92,17 @@ class GarminSync:
         
         if self.client:
             try:
-                # add_body_composition(weight, percent_fat=None, ...) or similar
-                # Using named argument 'weight' is safest if signature varies
-                self.client.add_body_composition(weight=weight_kg)
-                logger.info(f"Uploaded weight {weight_kg}kg to Garmin.")
+                # library `add_body_composition` signature:
+                # add_body_composition(timestamp, weight, percent_fat=None, ...)
+                # Note: timestamp is FIRST argument.
+                
+                # If timestamp is None, use now?
+                # Library likely expects ISO string.
+                if not timestamp:
+                    from datetime import datetime
+                    timestamp = datetime.now().isoformat()
+                
+                self.client.add_body_composition(timestamp, weight=weight_kg)
+                logger.info(f"Uploaded weight {weight_kg}kg to Garmin at {timestamp}.")
             except Exception as e:
                 logger.error(f"Failed to upload weight to Garmin: {e}")

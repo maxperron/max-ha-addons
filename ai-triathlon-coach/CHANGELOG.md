@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.21
+- **Fix**: Removed lbs->kg conversion for Fitbit sync (user source is already kg).
+- **Fix**: Fixed `Garmin.add_body_composition` call by supplying the required `timestamp` argument extracted from the Fitbit log.
+
 ## 1.0.20
 - **Config**: Updated configuration schema to remove `loseit` options and properly expose `fitbit` options in the Home Assistant UI.
 - **Docs**: Added `DOCS.md` with detailed instructions on generating Fitbit OAuth credentials and initial refresh token.
