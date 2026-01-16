@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.27
+- **Fix**: Implemented direct API call for Garmin hydration sync (`/usersummary-service/usersummary/hydration/log`) as the library wrapper method `add_hydration` was missing.
+
 ## 1.0.26
 - **Fix**: Implemented auto-recovery from 403 Forbidden errors. If the add-on encounters a scope error (like missing nutrition access), it will automatically attempt to use the `initial_refresh_token` from the configuration to re-authenticate, ensuring config updates take effect immediately.
 

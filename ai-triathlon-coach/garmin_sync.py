@@ -131,15 +131,32 @@ class GarminSync:
 
     def add_hydration(self, quantity_ml):
         """
-        Add hydration (ml) to Garmin Connect.
+        Add hydration (ml) to Garmin Connect using internal API.
         """
         if not self.client:
              self.login()
         
         if self.client:
             try:
-                # add_hydration(valueInMl)
-                self.client.add_hydration(quantity_ml)
-                logger.info(f"Added {quantity_ml}ml hydration to Garmin.")
+                # Use internal 'connectapi' to hit the endpoint directly
+                # Endpoint: /usersummary-service/usersummary/hydration/log
+                # Method: PUT
+                # Body: {"valueInML": 250, "calendarDate": "YYYY-MM-DD"}
+                
+                today_str = date.today().isoformat()
+                
+                url = "/usersummary-service/usersummary/hydration/log"
+                data = {
+                    "valueInML": quantity_ml,
+                    "calendarDate": today_str
+                }
+                
+                # Check if connectapi exists (it should in cyberjunky lib)
+                if hasattr(self.client, 'connectapi'):
+                    self.client.connectapi(url, method='PUT', json=data)
+                    logger.info(f"Added {quantity_ml}ml hydration to Garmin via internal API.")
+                else:
+                    logger.error("Garmin client does not support 'connectapi' method.")
+                    
             except Exception as e:
                 logger.error(f"Failed to add hydration to Garmin: {e}")
