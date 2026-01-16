@@ -1,5 +1,5 @@
 name: "AI Triathlon Coach Data Bridge"
-version: "1.0.19"
+version: "1.0.20"
 slug: "ai_triathlon_coach"
 description: "Syncs fitness and nutrition data from Garmin, Intervals.icu, and LoseIt to Google Sheets for Gemini AI analysis."
 url: "https://github.com/max-ha-addons/ai-triathlon-coach"
@@ -12,8 +12,9 @@ options:
   garmin_password: ""
   intervals_api_key: ""
   intervals_athlete_id: ""
-  loseit_email: ""
-  loseit_password: ""
+  fitbit_client_id: ""
+  fitbit_client_secret: ""
+  fitbit_initial_refresh_token: ""
   google_sheets_service_account_json: {}
   google_sheet_id: ""
   sync_interval_minutes: 60
@@ -22,8 +23,9 @@ schema:
   garmin_password: password
   intervals_api_key: password
   intervals_athlete_id: str
-  loseit_email: str
-  loseit_password: password
+  fitbit_client_id: str
+  fitbit_client_secret: password
+  fitbit_initial_refresh_token: password
   google_sheets_service_account_json: str
   google_sheet_id: str
   sync_interval_minutes: int

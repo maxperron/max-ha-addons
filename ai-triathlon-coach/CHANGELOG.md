@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.20
+- **Config**: Updated configuration schema to remove `loseit` options and properly expose `fitbit` options in the Home Assistant UI.
+- **Docs**: Added `DOCS.md` with detailed instructions on generating Fitbit OAuth credentials and initial refresh token.
+
 ## 1.0.19
 - **Feature**: Added Fitbit to Garmin weight sync. Fetches weight from Fitbit (assuming lbs) and uploads to Garmin (converted to kg) automatically.
 - **Config**: Added Fitbit OAuth credentials to configuration.
