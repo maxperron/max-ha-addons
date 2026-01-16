@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.30
+- **Fix**: Improved Fitbit water unit detection to handle variations like "Fluid Ounce", ensuring correct conversion to ml.
+
 ## 1.0.29
 - **Fix**: Resolved `NameError` in `garmin_sync.py` by correctly importing `datetime`.
 

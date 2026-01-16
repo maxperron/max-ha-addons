@@ -152,12 +152,16 @@ def job_sync_weight(config):
         water_res = fb.get_water_log(today_str)
         if water_res:
              total_water, unit = water_res
+             logger.info(f"Fitbit Water Fetched: {total_water} {unit}")
+             
              if total_water > 0:
                  # Normalize to ml
                  total_ml = total_water
-                 if unit in ['fl oz', 'oz', 'analyzed_oz']:
+                 u_lower = str(unit).lower()
+                 
+                 if any(x in u_lower for x in ['oz', 'ounce']):
                      total_ml = total_water * 29.5735
-                 elif unit in ['cup', 'cups']:
+                 elif any(x in u_lower for x in ['cup']):
                      total_ml = total_water * 236.588
                  
                  total_ml = int(total_ml)
