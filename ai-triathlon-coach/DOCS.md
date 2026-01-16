@@ -26,7 +26,7 @@ You need to authenticate once to generate the initial token cycle. You can do th
 #### Method A: Using Authorization URL
 1.  Construct this URL (replace `YOUR_CLIENT_ID`):
     ```
-    https://www.fitbit.com/oauth2/authorize?response_type=code&client_id=YOUR_CLIENT_ID&redirect_uri=http%3A%2F%2Flocalhost&scope=weight%20profile
+    https://www.fitbit.com/oauth2/authorize?response_type=code&client_id=YOUR_CLIENT_ID&redirect_uri=http%3A%2F%2Flocalhost&scope=weight%20profile%20nutrition
     ```
 2.  Paste it into your browser. Log in and click "Allow".
 3.  You will be redirected to `http://localhost/?code=YOUR_BIG_CODE#_=_`.
