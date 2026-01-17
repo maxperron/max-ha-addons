@@ -117,12 +117,21 @@ class GarminSync:
         
         if self.client:
             try:
-                # API usually returns a dict with 'valueInMl' or similar
+                # Try internal API first: /usersummary-service/usersummary/hydration/daily/{date}
+                if hasattr(self.client, 'connectapi'):
+                    url = f"/usersummary-service/usersummary/hydration/daily/{date_str}"
+                    data = self.client.connectapi(url)
+                    # Response: {'calendarDate': '2026-01-16', 'valueInML': 250, 'goalInML': 2000}
+                    if data and 'valueInML' in data:
+                        val = int(data['valueInML'])
+                        logger.info(f"Garmin Hydration (Internal): {val} ml")
+                        return val
+                
+                # Fallback to library method if internal fails or not available
+                logger.info("Fallback to library get_hydration_data")
                 data = self.client.get_hydration_data(date_str)
-                # Inspecting typical response: {'date': '...', 'valueInMl': 250, 'goalInMl': 2000}
-                # Check for 'valueInMl'
-                if data and 'valueInMl' in data:
-                    return int(data['valueInMl'])
+                if data and 'valueInML' in data:
+                    return int(data['valueInML'])
                 return 0
             except Exception as e:
                 logger.error(f"Failed to get hydration from Garmin: {e}")
