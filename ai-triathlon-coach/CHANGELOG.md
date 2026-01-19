@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.37
+## 1.0.38
 - **Fix**: Critical fix for Cronometer login failure.
   - Updated POST URL to remove trailing slash (`/login` vs `/login/`).
   - Added `X-Requested-With: XMLHttpRequest` header to ensure JSON response.
