@@ -43,7 +43,7 @@ class GSheetsSync:
             logger.info("DEBUG: No wellness data provided to sync_wellness_data")
             return
 
-        logger.info(f"DEBUG: Syncing Wellness Data: {wellness_data}")
+        logger.info(f"DEBUG: Syncing Wellness Data ({len(wellness_data)} records). Example first record: {wellness_data[0]}")
 
         # Prepare list of flat dictionaries mapping to sheet columns
         # wellness_data keys: date, ctl, atl, rampRate, weight, restingHR, hrv
@@ -145,6 +145,10 @@ class GSheetsSync:
             if not df_existing.empty and "Date" in df_existing.columns:
                 df_existing["Date"] = df_existing["Date"].apply(reformat_date)
 
+            logger.info(f"DEBUG: Columns in df_new: {df_new.columns.tolist()}")
+            if not df_existing.empty:
+                logger.info(f"DEBUG: Columns in df_existing: {df_existing.columns.tolist()}")
+
             # Convert key column to string
             df_new[key_column] = df_new[key_column].astype(str)
             if not df_existing.empty:
@@ -182,6 +186,7 @@ class GSheetsSync:
                 # We must ensure df_existing has all columns from df_new.
                 new_cols = df_new.columns.difference(df_existing.columns)
                 if not new_cols.empty:
+                    logger.info(f"DEBUG: Found new columns to add to existing sheet: {new_cols.tolist()}")
                     for col in new_cols:
                         df_existing[col] = "" # or pd.NA, "" works well for GSheets
 

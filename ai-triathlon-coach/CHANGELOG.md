@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.54
+- Add extensive debug logging to `gsheets_sync.py` to trace missing columns issue.
+
 ## 1.0.53
 - Add `Intervals_Form` (Absolute) metric to Google Sheets sync.
 - Refine Intervals wellness data mapping.
