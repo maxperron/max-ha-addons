@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.47
+- **Fix**: Resolved "duplicate labels" error in Workout Details sync by switching to incremental merge strategy.
+- **Fix**: Handled missing `add_body_composition` method in Garmin library to prevent crashes during weight sync.
+
 ## 1.0.46
 - **Changed**: Fixed Pandas FutureWarning regarding downcasting.
 - **Changed**: Defaulted Garmin weight to converted Lbs (from KG).

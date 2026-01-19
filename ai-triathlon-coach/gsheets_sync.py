@@ -95,12 +95,12 @@ class GSheetsSync:
     def sync_workout_details(self, data_list):
         """
         Syncs workout data.
-        Upsert logic based on 'Date' and 'Activity_Type' or a unique external ID if available.
-        For now, let's use Date + Activity_Type as a proxy for uniqueness if ID isn't clear,
-        but Intervals.icu usually has an ID. Let's assume input has unique 'intervals_id' or we rely on Date+Activity.
+        Uses incremental merge to handle multiple workouts on same day and updates.
         """
         worksheet = self._get_worksheet("Workout_Details")
-        self._upsert_data(worksheet, data_list, key_column="Date")
+        # _incremental_merge_data handles deduplication by Date+Activity logic better 
+        # or at least avoids the reindex error by cleaning old data for the dates first.
+        self._incremental_merge_data(worksheet, data_list)
 
     def _upsert_data(self, worksheet, new_data, key_column):
         """
