@@ -59,12 +59,45 @@ class GarminSync:
             hrv_data = self.client.get_hrv_data(today.isoformat())
             logger.info(f"DEBUG: Garmin HRV Data: {hrv_data}")
 
+            # 4. Body Composition (for Weight)
+            # 'user_summary' does not contain weight history. We must fetch explicit body composition.
+            body_comp = self.client.get_body_composition(today.isoformat())
+            logger.info(f"DEBUG: Garmin Body Composition: {body_comp}")
+            
+            # Extract weight from body_comp
+            # Usually returns a dict with 'totalAverage' -> 'weight' or a list of measurements?
+            # Library often returns: {'date': '...', 'totalAverage': {'weight': 89900.0, ...}} # grams?
+            # API response structure varies. Let's inspect 'body_comp'. 
+            # If it's a dict with 'totalAverage':
+            weight_val = None
+            if isinstance(body_comp, dict) and "totalAverage" in body_comp:
+                 # It might be in grams? Garmin API usually is grams for body comp.
+                 # Let's check a sample or assume grams and convert if reasonable (> 1000).
+                 w_g = body_comp["totalAverage"].get("weight")
+                 if w_g:
+                     weight_val = float(w_g) / 1000.0 # to kg
+            elif isinstance(body_comp, list) and len(body_comp) > 0:
+                # If list of measurements
+                w_g = body_comp[-1].get("weight") # Last one?
+                if w_g:
+                    weight_val = float(w_g) / 1000.0
+            
+            # Fallback to user_summary if body_comp empty (though we know user_summary is None)
+            if not weight_val and user_summary.get("totalWeight"):
+                weight_val = float(user_summary.get("totalWeight"))
+            
+            # Convert to Lbs defaults
+            # If weight_val is in KG.
+            weight_lbs = None
+            if weight_val:
+                weight_lbs = weight_val * 2.20462
+
             # Extract fields
             # Inspect response structure carefully - using .get robustly
             
             summary_record = {
                 "Date": today.isoformat(),
-                "Weight": float(user_summary.get("totalWeight", 0)) * 2.20462 if user_summary.get("totalWeight") else None,
+                "Weight": weight_lbs,
                 "Sleep_Score": sleep_data.get("dailySleepDTO", {}).get("sleepScoreFeedback", None), 
                 "Resting_HR": user_summary.get("restingHeartRate", None),
                 "Stress_Avg": user_summary.get("averageStressLevel", None),

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.52
+- **Fix**: Updated Garmin sync to fetch Weight from `get_body_composition` endpoint instead of `user_summary` (which was returning None).
+- **Fix**: Logic added to handle body composition response (grams to kg conversion) and fallback.
+
 ## 1.0.51
 - **Fix**: Changed default value for missing Garmin data (Weight, HR, Sleep) from empty string (`""`) to `None`. This prevents the sync from overwriting existing data (e.g. from other sources) with blank values during the merge process.
 
