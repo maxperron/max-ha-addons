@@ -115,13 +115,27 @@ class CronometerSync:
                 # Set end date to tomorrow to ensure we capture everything today
                 end_date = (datetime.datetime.now() + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
 
+            # Convert to ISO/RFC3339 format which seems to be required by some versions of the API
+            # e.g. 2023-01-01T00:00:00.000Z
+            def to_iso(date_str):
+                if "T" not in date_str:
+                    return f"{date_str}T00:00:00.000Z"
+                return date_str
+
             params = {
                 "type": "servings",
-                "start": start_date,
-                "end": end_date
+                "start": to_iso(start_date),
+                "end": to_iso(end_date)
+            }
+            
+            # Add headers to mimic browser export
+            headers = {
+                "Origin": self.BASE_URL,
+                "Referer": f"{self.BASE_URL}/",
+                "X-Requested-With": "XMLHttpRequest"
             }
 
-            resp = self.session.get(self.EXPORT_URL, params=params)
+            resp = self.session.get(self.EXPORT_URL, params=params, headers=headers)
             resp.raise_for_status()
             
             # Parse CSV

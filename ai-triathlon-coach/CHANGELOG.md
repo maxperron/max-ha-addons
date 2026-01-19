@@ -1,7 +1,8 @@
 # Changelog
 
-## 1.0.40
-- **Fix**: Resolved startup crash (`UnboundLocalError`) caused by the new startup banner trying to access configuration before it was loaded.
+## 1.0.41
+- **Fix**: Resolved 500 Server Error during export by using RFC3339 timestamp format (`YYYY-MM-DDTHH:MM:SS.000Z`) for `start` and `end` parameters.
+- **Fix**: Added `Origin`, `Referer`, and `X-Requested-With` headers to the export request to mimic browser behavior.
 - **Fix**: Updated Cronometer export logic to use `https://cronometer.com/export` with explicit parameters (`type=servings`, `start`, `end`) instead of a direct file download URL. This ensures complete data retrieval and resolves 404 errors.
 - **Improvement**: Added visual log separator and startup banner to `main.py` for better log readability on restart.
   - Added `userCode` field to login payload.
