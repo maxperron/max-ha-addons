@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.38
+## 1.0.39
 - **Fix**: Updated Cronometer export logic to use `https://cronometer.com/export` with explicit parameters (`type=servings`, `start`, `end`) instead of a direct file download URL. This ensures complete data retrieval and resolves 404 errors.
 - **Improvement**: Added visual log separator and startup banner to `main.py` for better log readability on restart.
   - Added `userCode` field to login payload.
