@@ -97,9 +97,14 @@ class GarminSync:
             readiness_score = None
             try:
                 readiness_data = self.client.get_training_readiness(today.isoformat())
-                logger.info(f"DEBUG: Garmin Readiness Data: {readiness_data}")
-                if isinstance(readiness_data, dict):
-                    # structure usually {'score': 85, ...}
+                logger.info(f"DEBUG: Garmin Readiness Data length: {len(readiness_data) if isinstance(readiness_data, list) else 'Not List'}")
+                
+                 # Log structure showed a LIST of dicts. We want the latest one (sorted by timestamp?) or just the first?
+                 # Log example: [{'calendarDate': '2026-01-19', 'timestamp': '2026-01-19T17:57:19.0', 'score': 72...}, {'timestamp': '2026-01-19T13:47...'}]
+                 # It seems they are ordered reverse chronological (newest first). Let's take the first.
+                if isinstance(readiness_data, list) and len(readiness_data) > 0:
+                    readiness_score = readiness_data[0].get("score")
+                elif isinstance(readiness_data, dict):
                     readiness_score = readiness_data.get("score")
             except Exception as e:
                 logger.warning(f"Could not fetch Training Readiness: {e}")
@@ -108,14 +113,23 @@ class GarminSync:
             training_status = None
             try:
                 training_status_data = self.client.get_training_status(today.isoformat())
-                logger.info(f"DEBUG: Garmin Training Status Data: {training_status_data}")
+                # Log structure: 
+                # 'mostRecentTrainingStatus': {'latestTrainingStatusData': {'3505822885': {'trainingStatus': 4, 'trainingStatusFeedbackPhrase': 'MAINTAINING_2', ...}}}
+                # It is nested by Device ID (!).
+                
                 if isinstance(training_status_data, dict):
-                    # structure often {'mostRecentTrainingStatus': {'status': '...'}}
-                    # or just flat? Checking logs will confirm.
-                    # fallback to stringifying if structure unknown, but let's try 'mostRecentTrainingStatus'
-                    mrts = training_status_data.get("mostRecentTrainingStatus") 
-                    if isinstance(mrts, dict):
-                        training_status = mrts.get("status")
+                    mrts = training_status_data.get("mostRecentTrainingStatus", {})
+                    latest_data_map = mrts.get("latestTrainingStatusData", {})
+                    
+                    # We need to iterate values or find keys.
+                    # Or simpler: look for 'trainingStatusFeedbackPhrase' in values.
+                    for device_id, device_data in latest_data_map.items():
+                        if isinstance(device_data, dict):
+                             # Priority to feedback phrase (e.g. "MAINTAINING_2") or usage "trainingStatus" code (4)
+                             phrase = device_data.get("trainingStatusFeedbackPhrase")
+                             if phrase:
+                                 training_status = phrase
+                                 break # Assume first valid device is good enough
             except Exception as e:
                 logger.warning(f"Could not fetch Training Status: {e}")
 

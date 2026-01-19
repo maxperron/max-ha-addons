@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.58
+- Fixed Garmin Readiness and Training Status extraction logic (handling lists and nested keys).
+
 ## 1.0.57
 - Refined Garmin Hydration sync.
 - Added debug logging for Training Readiness and Training Status to diagnose empty values.
