@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.55
+- Reordered Intervals sync to process Wellness data BEFORE Activities.
+- added logging to `get_activities`.
+
 ## 1.0.54
 - Add extensive debug logging to `gsheets_sync.py` to trace missing columns issue.
 

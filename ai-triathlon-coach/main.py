@@ -83,11 +83,18 @@ def job_sync_intervals(config):
         future_start_str = future_start.strftime("%Y-%m-%d")
         future_end_str = future_end.strftime("%Y-%m-%d")
         
-        # 2. FETCH HISTORY (Activities & Wellness)
-        # A. Actual Activities
+        # 2. FETCH DATA
+        
+        # A. Wellness (Prioritized)
+        # User requested Fitness, Fatigue, Form check.
+        wellness = in_svc.get_wellness_data(hist_start_str, hist_end_str)
+        if wellness:
+            ws.sync_wellness_data(wellness)
+
+        # B. Actual Activities
         activities = in_svc.get_activities(hist_start_str, hist_end_str)
         
-        # B. Planned Workouts (Forecast)
+        # C. Planned Workouts (Forecast)
         planned = in_svc.get_planned_workouts(future_start_str, future_end_str)
         
         # Combine Workouts (Upserting to same sheet)
@@ -99,12 +106,6 @@ def job_sync_intervals(config):
             
         if all_workouts:
             ws.sync_workout_details(all_workouts)
-        
-        # C. Wellness (History Only - predictions usually not retrievable via simple wellness ep?)
-        # User said "7 days plan was NOT for fitness fatigue..." so we stick to history for wellness.
-        wellness = in_svc.get_wellness_data(hist_start_str, hist_end_str)
-        if wellness:
-            ws.sync_wellness_data(wellness)
 
         logger.info("Intervals Sync Completed.")
     except Exception as e:

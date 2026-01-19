@@ -26,6 +26,7 @@ class IntervalsSync:
         """
         url = f"{self.base_url}/activities?oldest={start_date_str}&newest={end_date_str}"
         
+        logger.info(f"Fetching Intervals.icu activities from {start_date_str} to {end_date_str}...")
         try:
             resp = requests.get(url, headers=self.headers)
             resp.raise_for_status()
