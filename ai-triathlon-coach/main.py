@@ -150,15 +150,15 @@ def job_sync_weight(config):
         logger.error(f"Weight Sync Failed: {e}")
 
 def main():
+    logger.info("Initializing AI Triathlon Coach Data Bridge...")
+    config = load_config()
+
     # Visual Log Clear for Add-on users
     print("\n" * 50)
     print("=" * 60)
     print("   AI TRIATHLON COACH - DATA BRIDGE STARTED")
     print(f"   Version: {config.get('version', 'Unknown')}")
     print("=" * 60)
-
-    logger.info("Initializing AI Triathlon Coach Data Bridge...")
-    config = load_config()
     
     interval = config.get("sync_interval_minutes", 60)
     
