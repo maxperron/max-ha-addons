@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.50
+- **Fix**: Upgraded `garminconnect` library to `>=0.2.24` to resolve login `AssertionError` caused by Garmin API changes (profile dict structure).
+
 ## 1.0.49
 - **Changed**: Upgraded `garminconnect` library to `0.2.16` to support weight upload (`add_body_composition`).
 - **Feature**: Added extensive debug logging for Garmin, Intervals, and Google Sheets sync to diagnose missing data.
