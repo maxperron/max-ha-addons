@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.34
+- **Feature**: Added Cronometer integration for nutrition logging. Data is exported internally via CSV and synced to the `Nutrition_Log` sheet.
+- **Config**: Added `cronometer_username` and `cronometer_password` options.
+- **Data**: New `Nutrition_Log` sheet with columns: `Food_Item`, `Meal_Name`, `Quantity`, `Units`, `Calories`, `Fat`, `Protein`, `Carbohydrates`, `Last_Fetched_At`.
+- **Docs**: Added Cronometer configuration section to `DOCS.md`.
+
 ## 1.0.33
 - **Removal**: Removed Fitbit Hydration sync feature as per user request (moved to a different application).
 - **Docs**: Reverted the required Fitbit scopes to just `weight profile`.

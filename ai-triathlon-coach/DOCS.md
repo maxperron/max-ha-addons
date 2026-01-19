@@ -54,3 +54,10 @@ Go to the **Configuration** tab in Home Assistant and enter:
 *   `fitbit_initial_refresh_token`: From Step 2.
 
 The add-on will automatically manage token refreshing from this point on.
+
+## Cronometer Configuration
+
+To sync nutrition data, simply provide your Cronometer login credentials. This add-on uses the export feature which requires a valid account.
+
+*   `cronometer_username`: Your email or username for Cronometer.
+*   `cronometer_password`: Your Cronometer password.

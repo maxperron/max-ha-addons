@@ -161,18 +161,48 @@ def main():
     
     # Weight sync might not need to run every hour, but consistent with others is fine.
     schedule.every(interval).minutes.do(job_sync_weight, config)
+    schedule.every(interval).minutes.do(job_sync_cronometer, config)
     
     # Run once on startup
     logger.info("Running initial sync...")
     job_sync_garmin(config)
     job_sync_intervals(config)
-    job_sync_weight(config)
+    job_sync_weight(config) # Assuming Fitbit is configured
+    job_sync_cronometer(config)
     
     logger.info(f"Scheduler started. Heartbeat every {interval} minutes.")
     
     while True:
         schedule.run_pending()
         time.sleep(1)
+
+def job_sync_cronometer(config):
+    logger.info("Starting Cronometer Sync...")
+    try:
+        from cronometer_sync import CronometerSync
+        
+        if not config.get("cronometer_username") or not config.get("cronometer_password"):
+            logger.warning("Cronometer credentials missing. Skipping sync.")
+            return
+
+        # Initialize Client
+        # We can pass date range if we want incremental, but export usually gives full or recent.
+        # cronometer_sync.get_servings_data defaults to full export approach if no dates.
+        cs = CronometerSync(config["cronometer_username"], config["cronometer_password"])
+        
+        # Fetch Data
+        data = cs.get_servings_data()
+        
+        if data:
+            # Sync to Sheet
+            ws = GSheetsSync(config["google_sheets_service_account_json"], config["google_sheet_id"])
+            ws.sync_nutrition_log(data)
+            logger.info("Cronometer Sync Completed.")
+        else:
+            logger.info("No data retrieved from Cronometer.")
+            
+    except Exception as e:
+        logger.error(f"Cronometer Sync Failed: {e}")
 
 if __name__ == "__main__":
     main()
