@@ -1,9 +1,8 @@
 # Changelog
 
 ## 1.0.38
-- **Fix**: Critical fix for Cronometer login failure.
-  - Updated POST URL to remove trailing slash (`/login` vs `/login/`).
-  - Added `X-Requested-With: XMLHttpRequest` header to ensure JSON response.
+- **Fix**: Updated Cronometer export logic to use `https://cronometer.com/export` with explicit parameters (`type=servings`, `start`, `end`) instead of a direct file download URL. This ensures complete data retrieval and resolves 404 errors.
+- **Improvement**: Added visual log separator and startup banner to `main.py` for better log readability on restart.
   - Added `userCode` field to login payload.
   - Improved CSRF token extraction regex and added detailed debug logging.
   - Updated success check to handle schema-less JSON redirect responses (`{"redirect": "..."}`).

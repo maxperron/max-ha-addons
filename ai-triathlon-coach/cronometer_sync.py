@@ -10,7 +10,7 @@ class CronometerSync:
     BASE_URL = "https://cronometer.com"
     LOGIN_URL = "https://cronometer.com/login/" # Page with the form
     LOGIN_API_URL = "https://cronometer.com/login" # API endpoint for POST (no trailing slash)
-    EXPORT_URL = "https://cronometer.com/export/servings.csv"
+    EXPORT_URL = "https://cronometer.com/export" # Base export URL, requires parameters
 
     def __init__(self, username, password):
         self.username = username
@@ -96,18 +96,32 @@ class CronometerSync:
     def get_servings_data(self, start_date=None, end_date=None):
         """
         Exports servings data as CSV and returns a list of dictionaries.
-        If dates are provided, they could potentially be used to filter or request specific range if URL supports it.
-        The default export usually gives full history or last X days.
-        According to some docs, export might take params?
-        The URL https://cronometer.com/export/Servings.csv implies a direct download.
-        Experimental: Try passing params if supported, otherwise filter locally.
         """
         if not self.login():
             return []
 
         logger.info("Exporting Servings.csv...")
         try:
-            resp = self.session.get(self.EXPORT_URL)
+            # Prepare Parameters
+            import datetime
+            
+            # Default to fetching ALL history if no start date is provided.
+            # Since gsheets_sync replaces the whole sheet, we need the full dataset.
+            # 2010 is a safe "start of time" for this app.
+            if not start_date:
+                start_date = "2010-01-01"
+            
+            if not end_date:
+                # Set end date to tomorrow to ensure we capture everything today
+                end_date = (datetime.datetime.now() + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+
+            params = {
+                "type": "servings",
+                "start": start_date,
+                "end": end_date
+            }
+
+            resp = self.session.get(self.EXPORT_URL, params=params)
             resp.raise_for_status()
             
             # Parse CSV
@@ -117,11 +131,6 @@ class CronometerSync:
             
             data = []
             for row in csv_reader:
-                # Row keys depend on the CSV header.
-                # Standard Cronometer Export Headers usually:
-                # Date, Day, Time, Amount, Unit, Food, Calories (kcal), Alcohol (g), Caffeine (mg), Water (g), ...
-                
-                # We can filter by date here if needed
                 data.append(row)
                 
             logger.info(f"Retrieved {len(data)} serving records.")
