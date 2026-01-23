@@ -165,6 +165,9 @@ def aria_upload():
     The scale sends data as a binary file upload with key 'dump'.
     Weight in grams is a 4-byte big-endian uint at offset 54 (0x36).
     """
+    try:
+        logger.info(f"Received Aria Request from {request.remote_addr}")
+
         # The Aria 1 scale sends a binary payload but with Content-Type: application/x-www-form-urlencoded
         # This causes Flask to attempt to parse it as form data, which consumes the stream and leaves it empty.
         # We must read the raw stream FIRST, before accessing request.files or request.form.

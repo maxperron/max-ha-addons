@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.68
+- **Fix**: Resolved `IndentationError` in `main.py` (missing `try` block wrapper for Aria handler).
+
 ## 1.0.67
 - **Fix**: Updated Aria weight parsing to use Little Endian (`<I`) instead of Big Endian, matching the protocol details from reliable sources (Wayne Piekarski's blog).
 
