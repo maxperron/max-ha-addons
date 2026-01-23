@@ -6,6 +6,8 @@ import os
 import sys
 from datetime import datetime, timedelta
 import threading
+import struct
+import requests
 from flask import Flask, request
 from garmin_sync import GarminSync
 from intervals_sync import IntervalsSync
@@ -162,18 +164,56 @@ def aria_upload():
     The scale sends data to fitbit.com/scale/upload.
     We intercept this to get the weight.
     """
+@app.route('/scale/upload', methods=['POST'])
+def aria_upload():
+    """
+    Handle data upload from Fitbit Aria scale.
+    The scale sends data as a binary file upload with key 'dump'.
+    Weight in grams is a 4-byte big-endian uint at offset 54 (0x36).
+    """
     try:
-        logger.info(f"Received Aria Data from {request.remote_addr}")
-        logger.info(f"Headers: {request.headers}")
-        logger.info(f"Form Data: {request.form}")
-        logger.info(f"Body: {request.get_data(as_text=True)}") # Verify what we get
-
-        # TODO: Parse the actual weight data here once we see the payload format.
-        # It is likely in request.form or a custom binary/proto format in body.
+        logger.info(f"Received Aria Request from {request.remote_addr}")
         
-        # Determine success response. Aria likely expects a JSON or specific string.
-        # For now, return what a typical API might return.
-        return "OK", 200
+        if 'dump' in request.files:
+            binary_data = request.files['dump'].read()
+            logger.info(f"Received 'dump' file, size: {len(binary_data)} bytes")
+            
+            # Basic validation of size
+            if len(binary_data) < 60:
+                logger.error("Binary dump too short to contain weight data.")
+                return "Error: Data too short", 400
+
+            # Parse Weight
+            # Offset 0x36 (54) is weight in grams (4-byte uint)
+            try:
+                weight_grams = struct.unpack('>I', binary_data[54:58])[0]
+                weight_kg = round(weight_grams / 1000.0, 2)
+                
+                logger.info(f"Parsed Weight: {weight_grams}g ({weight_kg}kg)")
+                
+                # Sync to Garmin
+                # We need to reload config to get credentials as they might not be globally available in this scope easily
+                # actually 'load_config' is available.
+                config = load_config()
+                if config.get("garmin_username") and config.get("garmin_password"):
+                    logger.info("Syncing weight to Garmin...")
+                    gs = GarminSync(config["garmin_username"], config["garmin_password"])
+                    # Use current timestamp
+                    timestamp = datetime.now()
+                    gs.add_body_composition(weight_kg, timestamp)
+                    logger.info("Garmin Sync Successful.")
+                else:
+                    logger.warning("Garmin credentials missing, skipping sync.")
+
+                return "OK", 200
+
+            except Exception as parse_e:
+                logger.error(f"Error parsing/processing weight: {parse_e}")
+                return "Error processing", 500
+        
+        else:
+            logger.warning("No 'dump' file in request.")
+            return "No payload", 400
         
     except Exception as e:
         logger.error(f"Error handling Aria upload: {e}")

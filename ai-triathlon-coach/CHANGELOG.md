@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.63
+- **Changed**: Removed Fitbit data forwarding (user request). Aria data is now *only* sent to Garmin.
+
+## 1.0.62
+- **Feature**: Implemented full support for Aria scale data. Packets are parsed (weight in grams at 0x36) and uploaded to Garmin.
+- **Feature**: Added forwarding of scale data to Fitbit servers to maintain official history.
+
+## 1.0.61
+- **Debug**: Enhanced Aria logging to print raw bytes (`repr`) of the request body to diagnose data format.
+
 ## 1.0.60
 - **Fix**: Added unbuffered output flag (`python -u`) to `run.sh` to ensure logs appear in real-time.
 
