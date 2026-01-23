@@ -53,17 +53,17 @@ class GarminSync:
             
             # 2. heart rate / stress / body battery (usually in user summary)
             user_summary = self.client.get_user_summary(today.isoformat())
-            logger.info(f"DEBUG: Garmin User Summary: {user_summary}")
+
             
             # 3. HRV (might need explicit call)
             hrv_data = self.client.get_hrv_data(today.isoformat())
-            logger.info(f"DEBUG: Garmin HRV Data: {hrv_data}")
+
 
             # 4. Body Composition (for Weight)
             # 'user_summary' does not contain weight history. We must fetch explicit body composition.
             # Updated to handle list or dict response.
             body_comp = self.client.get_body_composition(today.isoformat())
-            logger.info(f"DEBUG: Garmin Body Composition: {body_comp}")
+
             
             # Extract weight from body_comp
             # Usually returns a dict with 'totalAverage' -> 'weight' or a list of measurements?
@@ -97,7 +97,7 @@ class GarminSync:
             readiness_score = None
             try:
                 readiness_data = self.client.get_training_readiness(today.isoformat())
-                logger.info(f"DEBUG: Garmin Readiness Data length: {len(readiness_data) if isinstance(readiness_data, list) else 'Not List'}")
+
                 
                  # Log structure showed a LIST of dicts. We want the latest one (sorted by timestamp?) or just the first?
                  # Log example: [{'calendarDate': '2026-01-19', 'timestamp': '2026-01-19T17:57:19.0', 'score': 72...}, {'timestamp': '2026-01-19T13:47...'}]
@@ -137,7 +137,7 @@ class GarminSync:
             hydration_ml = None
             try:
                 hydration_data = self.client.get_hydration_data(today.isoformat())
-                logger.info(f"DEBUG: Garmin Hydration Data: {hydration_data}")
+
                 if isinstance(hydration_data, dict):
                     hydration_ml = hydration_data.get("valueInML")
             except Exception as e:

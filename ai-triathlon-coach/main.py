@@ -162,19 +162,38 @@ def aria_upload():
                 weight_grams = struct.unpack('<I', data_packet[54:58])[0]
                 weight_kg = round(weight_grams / 1000.0, 2)
                 
-                logger.info(f"Parsed Weight: {weight_grams}g ({weight_kg}kg)")
+                # Attempt to identify User
+                user_id = request.args.get('userId') or request.args.get('user')
+                # If not in args, try binary offset 8 (common in Aria 1)
+                if not user_id and len(data_packet) >= 12:
+                     try:
+                        user_id_int = struct.unpack('<I', data_packet[8:12])[0]
+                        user_id = f"Binary:{user_id_int}"
+                     except:
+                        pass
                 
-                # Sync to Garmin
+                logger.info(f"Parsed Weight: {weight_grams}g ({weight_kg}kg) for User: {user_id}")
+                
+                # Sync to Garmin in Background Thread to prevent 504 Timeout on Scale
+                def sync_weight_background(w_kg, conf):
+                    try:
+                        if conf.get("garmin_username") and conf.get("garmin_password"):
+                            logger.info("Background: Syncing weight to Garmin...")
+                            gs = GarminSync(conf["garmin_username"], conf["garmin_password"])
+                            # Use current timestamp
+                            timestamp = datetime.now().isoformat()
+                            gs.add_body_composition(w_kg, timestamp)
+                            logger.info("Background: Garmin Weight Sync Successful.")
+                        else:
+                            logger.warning("Background: Garmin credentials missing, skipping sync.")
+                    except Exception as bg_e:
+                        logger.error(f"Background: Error syncing weight to Garmin: {bg_e}")
+
                 config = load_config()
-                if config.get("garmin_username") and config.get("garmin_password"):
-                    logger.info("Syncing weight to Garmin...")
-                    gs = GarminSync(config["garmin_username"], config["garmin_password"])
-                    # Use current timestamp
-                    timestamp = datetime.now().isoformat()
-                    gs.add_body_composition(weight_kg, timestamp)
-                    logger.info("Garmin Sync Successful.")
-                else:
-                    logger.warning("Garmin credentials missing, skipping sync.")
+                # Start the background thread
+                sync_thread = threading.Thread(target=sync_weight_background, args=(weight_kg, config))
+                sync_thread.start()
+                logger.info(f"Started background thread for Garmin weight sync ({weight_kg}kg)")
 
                 return "OK", 200
 

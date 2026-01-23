@@ -79,7 +79,7 @@ class IntervalsSync:
             resp = requests.get(url, headers=self.headers, params=params)
             resp.raise_for_status()
             data = resp.json()
-            logger.info(f"DEBUG: Intervals Wellness Data Raw: {data}")
+
             
             clean_wellness = []
             for entry in data:
