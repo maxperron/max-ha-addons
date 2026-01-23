@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.67
+- **Fix**: Updated Aria weight parsing to use Little Endian (`<I`) instead of Big Endian, matching the protocol details from reliable sources (Wayne Piekarski's blog).
+
+## 1.0.66
+- **Fix**: Aria handler now reads `request.get_data()` *before* any other request properties to prevent Flask's form parser from consuming the binary stream due to misleading Content-Type headers.
+
 ## 1.0.65
 - **Fix**: Adjusted Aria handler to read raw request body if `dump` file is missing (handles Aria sending x-www-form-urlencoded with binary body).
 

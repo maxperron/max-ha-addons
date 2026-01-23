@@ -165,31 +165,35 @@ def aria_upload():
     The scale sends data as a binary file upload with key 'dump'.
     Weight in grams is a 4-byte big-endian uint at offset 54 (0x36).
     """
-    try:
-        logger.info(f"Received Aria Request from {request.remote_addr}")
+        # The Aria 1 scale sends a binary payload but with Content-Type: application/x-www-form-urlencoded
+        # This causes Flask to attempt to parse it as form data, which consumes the stream and leaves it empty.
+        # We must read the raw stream FIRST, before accessing request.files or request.form.
         
-        binary_data = None
-        if 'dump' in request.files:
-            binary_data = request.files['dump'].read()
-            logger.info(f"Received 'dump' file, size: {len(binary_data)} bytes")
-        else:
-            # Fallback: Aria sends x-www-form-urlencoded but body is just the data?
-            # Or maybe key is 'dump' but parser failed? 
-            # Let's try raw body.
-            binary_data = request.get_data()
-            logger.info(f"No 'dump' file. Using raw body, size: {len(binary_data)} bytes")
-            logger.info(f"Body (Raw): {repr(binary_data)}")
+        binary_data = request.get_data()
+        logger.info(f"Read raw body: {len(binary_data)} bytes")
+        
+        # Determine if we have data to process
+        data_packet = None
+        
+        # Strategy 1: Use raw body if it looks like the dump (size > 60)
+        if len(binary_data) > 60:
+            data_packet = binary_data
+            
+        # Strategy 2: If raw body looks empty/small, try request.files (maybe multipart?)
+        elif 'dump' in request.files:
+            # If get_data didn't consume it (unexpected but possible), try files
+            logger.info("Raw body small, checking request.files['dump']...")
+            data_packet = request.files['dump'].read()
+            logger.info(f"Read dump file: {len(data_packet)} bytes")
 
-        if binary_data:
-            # Basic validation of size
-            if len(binary_data) < 60:
-                logger.error("Binary dump too short to contain weight data.")
-                return "Error: Data too short", 400
-
+        if data_packet and len(data_packet) >= 60:
             # Parse Weight
-            # Offset 0x36 (54) is weight in grams (4-byte uint)
+            # Offset 0x36 (54) is weight in grams (4-byte uint).
+            # Blog post (fitbit-mitm) parses this as Little Endian:
+            # $value = ($bytes[4] << 24) | ($bytes[3] << 16) | ($bytes[2] << 8) | $bytes[1];
             try:
-                weight_grams = struct.unpack('>I', binary_data[54:58])[0]
+                # Use Little Endian <I
+                weight_grams = struct.unpack('<I', data_packet[54:58])[0]
                 weight_kg = round(weight_grams / 1000.0, 2)
                 
                 logger.info(f"Parsed Weight: {weight_grams}g ({weight_kg}kg)")
@@ -213,7 +217,7 @@ def aria_upload():
                 return "Error processing", 500
         
         else:
-            logger.warning("No data found in request (files or body).")
+            logger.warning(f"No valid data packet found. Raw size: {len(binary_data)}")
             return "No payload", 400
         
     except Exception as e:
