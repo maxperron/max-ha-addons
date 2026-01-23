@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.70
+- **Fix**: Resolved `504 Gateway Time-out` on `/scale/upload` endpoint by moving Garmin synchronization to a background thread.
+- **Improved**: Removed verbose JSON debug logs from Garmin and Intervals sync modules to reduce log noise.
+- **Feature**: Added User ID logging (from URL or binary packet) for Aria scale uploads.
+
 ## 1.0.69
 - **Fix**: Resolved `TypeError` during Garmin weight upload by ensuring timestamp is passed as an ISO formatted string.
 - **Removed**: Deleted the legacy `job_sync_weight` which fetched weight from Fitbit API (superseded by direct Aria upload).
