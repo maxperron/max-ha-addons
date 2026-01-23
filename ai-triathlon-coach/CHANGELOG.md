@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.64
+- **Fix**: Resolved startup crash caused by duplicate route definition in `main.py`.
+
 ## 1.0.63
 - **Changed**: Removed Fitbit data forwarding (user request). Aria data is now *only* sent to Garmin.
 

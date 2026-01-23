@@ -157,13 +157,7 @@ def job_sync_weight(config):
 # --- WEB SERVER FOR FITBIT ARIA ---
 app = Flask(__name__)
 
-@app.route('/scale/upload', methods=['POST'])
-def aria_upload():
-    """
-    Handle data upload from Fitbit Aria scale.
-    The scale sends data to fitbit.com/scale/upload.
-    We intercept this to get the weight.
-    """
+
 @app.route('/scale/upload', methods=['POST'])
 def aria_upload():
     """
