@@ -168,10 +168,19 @@ def aria_upload():
     try:
         logger.info(f"Received Aria Request from {request.remote_addr}")
         
+        binary_data = None
         if 'dump' in request.files:
             binary_data = request.files['dump'].read()
             logger.info(f"Received 'dump' file, size: {len(binary_data)} bytes")
-            
+        else:
+            # Fallback: Aria sends x-www-form-urlencoded but body is just the data?
+            # Or maybe key is 'dump' but parser failed? 
+            # Let's try raw body.
+            binary_data = request.get_data()
+            logger.info(f"No 'dump' file. Using raw body, size: {len(binary_data)} bytes")
+            logger.info(f"Body (Raw): {repr(binary_data)}")
+
+        if binary_data:
             # Basic validation of size
             if len(binary_data) < 60:
                 logger.error("Binary dump too short to contain weight data.")
@@ -186,8 +195,6 @@ def aria_upload():
                 logger.info(f"Parsed Weight: {weight_grams}g ({weight_kg}kg)")
                 
                 # Sync to Garmin
-                # We need to reload config to get credentials as they might not be globally available in this scope easily
-                # actually 'load_config' is available.
                 config = load_config()
                 if config.get("garmin_username") and config.get("garmin_password"):
                     logger.info("Syncing weight to Garmin...")
@@ -206,7 +213,7 @@ def aria_upload():
                 return "Error processing", 500
         
         else:
-            logger.warning("No 'dump' file in request.")
+            logger.warning("No data found in request (files or body).")
             return "No payload", 400
         
     except Exception as e:

@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.65
+- **Fix**: Adjusted Aria handler to read raw request body if `dump` file is missing (handles Aria sending x-www-form-urlencoded with binary body).
+
 ## 1.0.64
 - **Fix**: Resolved startup crash caused by duplicate route definition in `main.py`.
 
