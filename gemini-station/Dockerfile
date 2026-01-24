@@ -15,8 +15,7 @@ RUN apk add --no-cache \
     nano
 
 # Install Google Gemini CLI globally
-RUN npm config set network-timeout 600000 && \
-    npm config set strict-ssl false && \
+RUN npm config set strict-ssl false && \
     npm install -g @google/gemini-cli \
     --no-audit \
     --no-fund \

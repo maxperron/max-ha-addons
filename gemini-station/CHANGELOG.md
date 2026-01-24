@@ -3,7 +3,7 @@
 ## 1.0.1
 
 - Fix: Robust npm install for @google/gemini-cli
-- Fix: Add network timeout and disable strict-ssl for npm
+- Fix: Disable strict-ssl for npm
 
 ## 1.0.0
 
