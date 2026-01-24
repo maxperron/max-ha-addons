@@ -1,0 +1,17 @@
+name: "Gemini Station"
+version: "1.0.0"
+slug: "gemini_station"
+description: "A persistent terminal for the Google Gemini CLI"
+url: "https://github.com/max-ha-addons"
+startup: application
+arch:
+  - aarch64
+  - amd64
+  - armhf
+  - armv7
+  - i386
+init: false
+ingress: true
+ingress_port: 8099
+options: {}
+schema: {}
