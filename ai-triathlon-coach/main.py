@@ -249,15 +249,8 @@ def aria_upload():
                 
                 # Build Envelope
                 # Body + CRC (2 bytes) + unknown2 (1 byte 0x66) + unknown3 (1 byte 0x00)
-                # CRC is usually Big Endian in network protocols? 
-                # Protocol.md says: `uint16 crc16`. 
-                # Let's try Little Endian first to match the rest, or strictly following simple pack.
-                # However, usually CRC is transmitted MSB first?
-                # Actually, Micolous helper `crc16xmodem` is standard.
-                # If the rest of the structs are LE, CRC might be too.
-                # Let's assume LE '<H' for CRC.
-                
-                resp_envelope = resp_body + struct.pack('<H', crc_val) + b'\x66\x00'
+                # Using Big Endian '>H' for CRC as standard network byte order, despite payload being LE.
+                resp_envelope = resp_body + struct.pack('>H', crc_val) + b'\x66\x00'
                 
                 logger.info(f"Sending binary success response ({len(resp_envelope)} bytes)")
                 return resp_envelope, 200
@@ -299,8 +292,6 @@ def main():
     # Schedule jobs
     schedule.every(interval).minutes.do(job_sync_garmin, config)
     schedule.every(interval).minutes.do(job_sync_intervals, config)
-    
-    # Weight sync might not need to run every hour, but consistent with others is fine.
     schedule.every(interval).minutes.do(job_sync_cronometer, config)
     
     # Run once on startup

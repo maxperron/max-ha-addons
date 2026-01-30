@@ -1,5 +1,7 @@
 # Changelog
 
+## 1.0.72
+- **Fix**: Switched CRC-16 checksum to **Big Endian** (`>H`) in Aria response. This fixes the issue where the scale would reset its configuration (units/users) after a successful upload.
 ## 1.0.71
 - **Maintenance**: Version bump to force re-deployment and ensure binary protocol changes are active.
 
