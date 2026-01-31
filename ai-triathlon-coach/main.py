@@ -182,11 +182,17 @@ def aria_upload():
                 
                 # Attempt to identify User
                 user_id = request.args.get('userId') or request.args.get('user')
-                # If not in args, try binary offset 8 (common in Aria 1)
-                if not user_id and len(data_packet) >= 12:
+                target_user_int = 0
+                
+                if user_id:
                      try:
-                        user_id_int = struct.unpack('<I', data_packet[8:12])[0]
-                        user_id = f"Binary:{user_id_int}"
+                         target_user_int = int(user_id)
+                     except:
+                         pass # String ID?
+                elif len(data_packet) >= 12:
+                     try:
+                        target_user_int = struct.unpack('<I', data_packet[8:12])[0]
+                        user_id = f"Binary:{target_user_int}"
                      except:
                         pass
                 
@@ -238,11 +244,15 @@ def aria_upload():
                     2,              # units (kg)
                     0x32,           # status (configured)
                     0x01,           # unknown1
-                    0,              # user_count
+                    1 if target_user_int else 0, # user_count
                     0x03,           # update_available (no)
                     3,              # unknown2
                     0               # unknown3
                 )
+                
+                # Append User ID if available
+                if target_user_int:
+                    resp_body += struct.pack('<I', target_user_int)
                 
                 # Calculate CRC
                 crc_val = crc16_ccitt(resp_body)
