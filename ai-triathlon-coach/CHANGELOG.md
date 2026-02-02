@@ -1,5 +1,7 @@
 # Changelog
 
+## 1.0.74
+- **Fix**: Corrected binary response structure for Aria scale. Changed `user_count` field from 4 bytes to 1 byte to ensure correct 8-byte alignment of the header. This should finally resolve the "No Sync" status.
 ## 1.0.73
 - **Fix**: Updated Aria response to return `user_count=1` and echo the identified User ID (4-byte Little Endian) in the body. This resolves the "No Sync" (X icon) error on the scale.
 ## 1.0.72
