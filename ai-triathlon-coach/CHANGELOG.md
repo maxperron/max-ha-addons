@@ -1,5 +1,7 @@
 # Changelog
 
+## 1.0.75
+- **Fix**: Corrected Protocol Alignment. Added a padding byte to align `user_count` to offset 8, correcting the structure layout. Reverted `user_count` to 0 (valid usage) to avoid sending incomplete user structures. This addresses the protocol misalignment that likely caused the "No Sync" error.
 ## 1.0.74
 - **Fix**: Corrected binary response structure for Aria scale. Changed `user_count` field from 4 bytes to 1 byte to ensure correct 8-byte alignment of the header. This should finally resolve the "No Sync" status.
 ## 1.0.73

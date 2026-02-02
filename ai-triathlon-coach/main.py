@@ -238,24 +238,25 @@ def aria_upload():
                 # struct.pack format:
                 # I (4), B (1), B (1), B (1), I (4), I (4), I (4), I (4)
                 
-                # Fixed Structure: < I B B B B I I I
-                # TS(4), Unit(1), Stat(1), Unk(1), Count(1), Upd(4), Unk(4), Unk(4)
-                # This ensures the first part is 8 bytes aligned (4 + 1+1+1+1)
+                # Fixed Structure: < I B B B x I I I I
+                # TS(4) | Unit(1) Stat(1) Unk1(1) Pad(1) | Count(4) | Upd(4) | Unk2(4) | Unk3(4)
+                # Adds up to 24 bytes.
+                # We use 'B' for padding byte set to 0.
                 resp_body = struct.pack(
-                    '<IBBBBIII',
+                    '<IBBBBIIII',
                     resp_ts,        # current_timestamp
                     2,              # units (kg)
                     0x32,           # status (configured)
                     0x01,           # unknown1
-                    1 if target_user_int else 0, # user_count (1 byte)
+                    0,              # PADDING byte for alignment
+                    0,              # user_count (4 bytes, 0 users)
                     0x03,           # update_available (no)
                     3,              # unknown2
                     0               # unknown3
                 )
                 
-                # Append User ID if available
-                if target_user_int:
-                    resp_body += struct.pack('<I', target_user_int)
+                # NOTE: If we iterate to user_count > 0, we must append the FULL AriaUser struct,
+                # not just the ID. For now, 0 users with correct alignment should satisfy the sync.
                 
                 # Calculate CRC
                 crc_val = crc16_ccitt(resp_body)
