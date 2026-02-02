@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.77
+- **Fix**: Resolved syntax error in the Proxy logic implementation. Cleaned up orphaned code from the previous binary response generator that was causing the server to fail. Code is now fully switched to Proxy/MITM mode.
+## 1.0.76
+- **New Feature**: Implemented "Fitbit MITM" Proxy mode. Instead of generating a local binary response (which caused "No Sync" errors due to protocol complexity), the add-on now forwards the raw scale data to Fitbit's official servers and returns the authoritative response to the scale.
+    - Uses strict IP targeting (`35.244.211.136`) to bypass local DNS loops.
+    - Continues to parse and sync weight to Garmin locally in parallel.
 ## 1.0.75
 - **Fix**: Corrected Protocol Alignment. Added a padding byte to align `user_count` to offset 8, correcting the structure layout. Reverted `user_count` to 0 (valid usage) to avoid sending incomplete user structures. This addresses the protocol misalignment that likely caused the "No Sync" error.
 ## 1.0.74

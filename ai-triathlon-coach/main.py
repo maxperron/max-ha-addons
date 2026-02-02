@@ -219,63 +219,53 @@ def aria_upload():
                 sync_thread.start()
                 logger.info(f"Started background thread for Garmin weight sync ({weight_kg}kg)")
 
-                # Construct SUCCESS Response for Aria
-                # Structure:
-                #   timestamp (4 bytes)
-                #   units (1 byte) - 2 = kg
-                #   status (1 byte) - 0x32 (configured)
-                #   unknown1 (1 byte) - 0x01
-                #   user_count (4 bytes) - 0 (no users being synced back)
-                #   update_available (4 bytes) - 0x03 (no)
-                #   unknown2 (4 bytes) - 3
-                #   unknown3 (4 bytes) - 0
-                
-                resp_ts = int(datetime.now().timestamp())
-                
-                # Build Body
-                # <I (Little Endian) for 4-byte fields? Protocol says uint32.
-                # Assuming Little Endian based on previous finding.
-                # struct.pack format:
-                # I (4), B (1), B (1), B (1), I (4), I (4), I (4), I (4)
-                
-                # Fixed Structure: < I B B B x I I I I
-                # TS(4) | Unit(1) Stat(1) Unk1(1) Pad(1) | Count(4) | Upd(4) | Unk2(4) | Unk3(4)
-                # Adds up to 24 bytes.
-                # We use 'B' for padding byte set to 0.
-                resp_body = struct.pack(
-                    '<IBBBBIIII',
-                    resp_ts,        # current_timestamp
-                    2,              # units (kg)
-                    0x32,           # status (configured)
-                    0x01,           # unknown1
-                    0,              # PADDING byte for alignment
-                    0,              # user_count (4 bytes, 0 users)
-                    0x03,           # update_available (no)
-                    3,              # unknown2
-                    0               # unknown3
+            except Exception as e:
+                logger.error(f"Error processing local data parsing: {e}")
+                # Don't block the proxy if local parsing fails
+
+            # ---------------------------------------------------------
+            # PROXY / MITM to REAL FITBIT SERVER
+            # ---------------------------------------------------------
+            # The User requested to use the "Fitbit MITM" approach.
+            # We forward the request to Fitbit servers to get a valid binary response
+            # that satisfies the scale's protocol (CRC, User ID, Sync Status).
+            #
+            # Target: http://www.fitbit.com/scale/upload
+            # IP: 35.244.211.136 (Hardcoded to avoid DNS loops if local DNS is hijacked)
+            
+            fitbit_ip = "35.244.211.136"
+            target_url = f"http://{fitbit_ip}/scale/upload"
+            
+            # Forward Headers
+            forward_headers = {key: value for (key, value) in request.headers if key != 'Host'}
+            forward_headers['Host'] = 'www.fitbit.com'
+            
+            logger.info(f"Proxying request to Fitbit: {target_url}")
+            
+            try:
+                # Forward the raw binary data
+                resp = requests.post(
+                    target_url,
+                    data=data_packet,
+                    headers=forward_headers,
+                    timeout=30
                 )
                 
-                # NOTE: If we iterate to user_count > 0, we must append the FULL AriaUser struct,
-                # not just the ID. For now, 0 users with correct alignment should satisfy the sync.
+                logger.info(f"Fitbit Response: {resp.status_code} - {len(resp.content)} bytes")
                 
-                # Calculate CRC
-                crc_val = crc16_ccitt(resp_body)
-                
-                # Build Envelope
-                # Body + CRC (2 bytes) + unknown2 (1 byte 0x66) + unknown3 (1 byte 0x00)
-                # Using Big Endian '>H' for CRC as standard network byte order, despite payload being LE.
-                resp_envelope = resp_body + struct.pack('>H', crc_val) + b'\x66\x00'
-                
-                logger.info(f"Sending binary success response ({len(resp_envelope)} bytes)")
-                return resp_envelope, 200
+                # Return Fitbit's headers and content
+                # We filter some hop-by-hop headers if necessary, but Flask handles most.
+                # Just return content and status for now.
+                return resp.content, resp.status_code
+            
+            except Exception as proxy_e:
+                logger.error(f"Proxy Error: {proxy_e}")
+                return "Proxy Error", 502
 
-            except Exception as parse_e:
-                logger.error(f"Error parsing/processing weight: {parse_e}")
-                return "Error processing", 500
-        
         else:
-            logger.warning(f"No valid data packet found. Raw size: {len(binary_data)}")
-            return "No payload", 400
+             logger.warning("No data packet received or packet too short.")
+             return "No Data", 400
+
         
     except Exception as e:
         logger.error(f"Error handling Aria upload: {e}")
