@@ -1,5 +1,7 @@
 # Changelog
 
+## 1.0.78
+- **Streamlined**: Disabled all Google Sheets, Intervals.icu, and Cronometer sync features (commented out code). The add-on now functions exclusively as a **Fitbit Aria -> Garmin** bridge using the proxy method.
 ## 1.0.77
 - **Fix**: Resolved syntax error in the Proxy logic implementation. Cleaned up orphaned code from the previous binary response generator that was causing the server to fail. Code is now fully switched to Proxy/MITM mode.
 ## 1.0.76
