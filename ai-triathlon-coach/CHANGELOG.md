@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.79
+- **Feature**: Added User ID Filtering for Aria scale.
+    - New config option `garmin_user_filter`.
+    - If set, only data from the matching User ID is synced to Garmin.
+    - All data is still proxied to Fitbit regardless of the filter.
+
 ## 1.0.78
 - **Streamlined**: Disabled all Google Sheets, Intervals.icu, and Cronometer sync features (commented out code). The add-on now functions exclusively as a **Fitbit Aria -> Garmin** bridge using the proxy method.
 ## 1.0.77

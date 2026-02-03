@@ -197,6 +197,20 @@ def aria_upload():
                 
                 logger.info(f"Parsed Weight: {weight_grams}g ({weight_kg}kg) for User: {user_id}")
                 
+                # Check User Filter
+                # If garmin_user_filter is set in config, ONLY sync if user_id matches.
+                # If not set, sync all (or handle as preferred).
+                target_filter = config.get("garmin_user_filter")
+                should_sync = True
+                
+                if target_filter:
+                    # User requested filtering
+                    if user_id != target_filter:
+                        logger.info(f"User Filter Mismatch: Params '{user_id}' != Config '{target_filter}'. Skipping Garmin Sync.")
+                        should_sync = False
+                    else:
+                        logger.info(f"User Filter Match: '{user_id}'. Proceeding with Garmin Sync.")
+                
                 # Sync to Garmin in Background Thread to prevent 504 Timeout on Scale
                 def sync_weight_background(w_kg, conf):
                     try:
@@ -212,11 +226,11 @@ def aria_upload():
                     except Exception as bg_e:
                         logger.error(f"Background: Error syncing weight to Garmin: {bg_e}")
 
-                config = load_config()
-                # Start the background thread
-                sync_thread = threading.Thread(target=sync_weight_background, args=(weight_kg, config))
-                sync_thread.start()
-                logger.info(f"Started background thread for Garmin weight sync ({weight_kg}kg)")
+                if should_sync:
+                    # Start the background thread
+                    sync_thread = threading.Thread(target=sync_weight_background, args=(weight_kg, config))
+                    sync_thread.start()
+                    logger.info(f"Started background thread for Garmin weight sync ({weight_kg}kg)")
 
             except Exception as e:
                 logger.error(f"Error processing local data parsing: {e}")
