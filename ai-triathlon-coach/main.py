@@ -195,7 +195,8 @@ def aria_upload():
                      except:
                         pass
                 
-                logger.info(f"Parsed Weight: {weight_grams}g ({weight_kg}kg) for User: {user_id}")
+                logger.info(f"Parsed Weight: {weight_grams}g ({weight_kg}kg)")
+                logger.info(f"Parsing User ID... (Raw Int: {target_user_int}) -> (Computed ID: {user_id})")
                 
                 # Check User Filter
                 # If garmin_user_filter is set in config, ONLY sync if user_id matches.

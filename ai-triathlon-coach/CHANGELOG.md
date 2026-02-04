@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.81
+- Improvement: Enhanced logging to explicitly show the raw integer User ID received from the scale.
+
 ## 1.0.80
 - Fix: Relaxed User ID filtering to handle whitespace and missing "Binary:" prefix (e.g. "3462330400" now matches "Binary:3462330400").
 
