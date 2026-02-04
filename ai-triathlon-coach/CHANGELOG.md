@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.80
+- Fix: Relaxed User ID filtering to handle whitespace and missing "Binary:" prefix (e.g. "3462330400" now matches "Binary:3462330400").
+
 ## 1.0.79
 - **Feature**: Added User ID Filtering for Aria scale.
     - New config option `garmin_user_filter`.

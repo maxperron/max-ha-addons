@@ -204,8 +204,17 @@ def aria_upload():
                 should_sync = True
                 
                 if target_filter:
-                    # User requested filtering
-                    if user_id != target_filter:
+                    # Robust comparison: handle whitespace and missing "Binary:" prefix
+                    tf = str(target_filter).strip()
+                    uid = str(user_id).strip()
+                    
+                    is_match = False
+                    if uid == tf:
+                         is_match = True
+                    elif uid.startswith("Binary:") and uid.replace("Binary:", "") == tf:
+                         is_match = True
+                    
+                    if not is_match:
                         logger.info(f"User Filter Mismatch: Params '{user_id}' != Config '{target_filter}'. Skipping Garmin Sync.")
                         should_sync = False
                     else:
