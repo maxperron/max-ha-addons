@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.82
+- Fix: Resolved `NameError: name 'config' is not defined` by making configuration globally accessible to the web server.
+
 ## 1.0.81
 - Improvement: Enhanced logging to explicitly show the raw integer User ID received from the scale.
 

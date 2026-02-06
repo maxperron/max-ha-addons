@@ -35,6 +35,9 @@ def load_config():
         logger.error(f"Could not load config: {e}")
         return {}
 
+# Global Config
+config = load_config()
+
 # def job_sync_garmin(config):
 #     logger.info("Starting Garmin Sync...")
 #     try:
@@ -301,7 +304,7 @@ def run_web_server():
 
 def main():
     logger.info("Initializing AI Triathlon Coach Data Bridge...")
-    config = load_config()
+    # config is already loaded globally
 
     # Start Web Server in Background Thread
     server_thread = threading.Thread(target=run_web_server, daemon=True)
