@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.83
+- **Fix**: Temporarily commented out Fitbit Aria weight sync to Garmin due to ongoing issues with the Garmin API.
+
 ## 1.0.82
 - Fix: Resolved `NameError: name 'config' is not defined` by making configuration globally accessible to the web server.
 
