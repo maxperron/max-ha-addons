@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.84] - 2026-03-29
+### Changed
+- **Renamed** project from "AI Triathlon Coach" to "Fitbit Aria Bridge".
+- **Scoped down** functionality to focus primarily on the Fitbit Aria scale bridge.
+- Updated directory name and slug metadata.
+
 ## 1.0.83
 - **Fix**: Temporarily commented out Fitbit Aria weight sync to Garmin due to ongoing issues with the Garmin API.
 

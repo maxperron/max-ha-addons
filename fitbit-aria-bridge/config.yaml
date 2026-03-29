@@ -1,9 +1,9 @@
-name: "AI Triathlon Coach Data Bridge"
-version: "1.0.83"
+name: "Fitbit Aria Bridge"
+version: "1.0.84"
 
-slug: "ai_triathlon_coach"
-description: "Syncs fitness and nutrition data from Garmin, Intervals.icu, and LoseIt to Google Sheets for Gemini AI analysis."
-url: "https://github.com/max-ha-addons/ai-triathlon-coach"
+slug: "fitbit_aria_bridge"
+description: "Bridge for Fitbit Aria scale to Garmin Connect (via Fitbit proxy)."
+url: "https://github.com/max-ha-addons/fitbit-aria-bridge"
 startup: application
 boot: auto
 map:

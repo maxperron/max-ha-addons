@@ -1,4 +1,4 @@
-# AI Triathlon Coach Configuration Guide
+# Fitbit Aria Bridge Configuration Guide
 
 ## Fitbit Configuration (Weight Sync)
 
@@ -8,7 +8,7 @@ To sync your weight from Fitbit to Garmin, you need to provide OAuth 2.0 credent
 1.  Go to [dev.fitbit.com/apps](https://dev.fitbit.com/apps/new) and log in.
 2.  Click **Register a New App**.
 3.  Fill in the details:
-    *   **Application Name**: `Home Assistant AI Coach` (or similar)
+    *   **Application Name**: `Fitbit Aria Bridge` (or similar)
     *   **Description**: `Personal weight sync for Home Assistant`
     *   **Application Website**: `http://localhost` (doesn't matter)
     *   **Organization**: `Personal`

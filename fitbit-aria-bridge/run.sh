@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "Starting AI Triathlon Coach Data Bridge..."
+echo "Starting Fitbit Aria Bridge..."
 
 # Launch the main application
 python3 -u /app/main.py

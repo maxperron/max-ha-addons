@@ -30,5 +30,4 @@ The addon creates a device named **Lufa Farms** with the following sensors:
 > [!WARNING]
 > **Not supported by Lufa Farms.**
 > This addon is a third-party project and is **NOT** supported by or affiliated with Lufa Farms.
->
 > **Use with caution:** usage of this addon might violate Lufa Farms' Terms and Conditions. Proceed at your own discretion.

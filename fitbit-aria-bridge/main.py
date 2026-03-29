@@ -314,7 +314,7 @@ def main():
     # Visual Log Clear for Add-on users
     print("\n" * 50)
     print("=" * 60)
-    print("   AI TRIATHLON COACH - DATA BRIDGE STARTED")
+    print("   FITBIT ARIA BRIDGE STARTED")
     print(f"   Version: {config.get('version', 'Unknown')}")
     print("=" * 60)
     
