@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.87] - 2026-03-31
+### Fixed
+- Resolved `ResolutionImpossible` error during Docker build by manually installing `garminconnect` with `--no-deps`. This bypasses the version conflict with our custom `garth 0.8.0` branch while maintaining all required functionality.
+
 ## [1.0.86] - 2026-03-31
 ### Fixed
 - Corrected `garth` dependency URL to the proper source branch (`nrvim/garth:feat/camoufox-browser-transport`).

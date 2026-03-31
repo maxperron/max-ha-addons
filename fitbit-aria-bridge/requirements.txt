@@ -1,4 +1,3 @@
-garminconnect>=0.2.24
 garth @ git+https://github.com/nrvim/garth.git@feat/camoufox-browser-transport
 camoufox[playwright]>=0.4
 
