@@ -19,7 +19,7 @@ RUN pip3 install --no-cache-dir garminconnect==0.2.40 --no-deps --break-system-p
 
 # Install Playwright browsers and system dependencies
 RUN pip3 install playwright camoufox[playwright] --break-system-packages
-RUN playwright install --with-deps chromium
+RUN playwright install --with-deps firefox
 
 # Copy application files
 COPY . /app
