@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.86] - 2026-03-31
+### Fixed
+- Corrected `garth` dependency URL to the proper source branch (`nrvim/garth:feat/camoufox-browser-transport`).
+
 ## [1.0.85] - 2026-03-31
 ### Fixed
 - **Revived Garmin Weight Sync**: Integrated the new browser-based automation from `garth` (PR #225) to bypass Garmin's legacy authentication issues.
