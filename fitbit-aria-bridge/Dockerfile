@@ -17,8 +17,8 @@ COPY requirements.txt .
 RUN pip3 install --no-cache-dir -r requirements.txt --break-system-packages
 
 # Install Playwright browsers and system dependencies
-# Removed Playwright as LoseIt sync is deprecated
-# RUN playwright install --with-deps chromium
+RUN pip3 install playwright camoufox[playwright] --break-system-packages
+RUN playwright install --with-deps chromium
 
 # Copy application files
 COPY . /app

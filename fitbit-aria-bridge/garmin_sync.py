@@ -1,3 +1,5 @@
+import garth
+import os
 from garminconnect import Garmin
 import logging
 from datetime import date, timedelta, datetime
@@ -5,9 +7,10 @@ from datetime import date, timedelta, datetime
 logger = logging.getLogger(__name__)
 
 class GarminSync:
-    def __init__(self, email, password):
+    def __init__(self, email, password, session_path="/data/garth_session"):
         self.email = email
         self.password = password
+        self.session_path = session_path
         self.client = None
         self.login()
 
@@ -19,16 +22,30 @@ class GarminSync:
 
         # Obfuscate email for logging
         email_masked = f"{self.email[:3]}***" if self.email and len(self.email) > 3 else "Unknown"
-        logger.info(f"Attempting login for Garmin user: {email_masked}")
 
         try:
-            self.client = Garmin(self.email, self.password)
-            self.client.login()
-            logger.info("Garmin Connect login successful.")
+            # 1. Attempt to resume existing session
+            if os.path.exists(self.session_path):
+                try:
+                    garth.resume(self.session_path)
+                    self.client = Garmin()
+                    # Verify session by getting a simple profile (optional but recommended)
+                    self.client.get_full_name()
+                    logger.info(f"Resumed existing Garmin session for {email_masked}")
+                    return
+                except Exception as e:
+                    logger.warning(f"Could not resume Garmin session: {e}. Attempting full login.")
+
+            # 2. Full login via browser (garth PR #225)
+            logger.info(f"Attempting new login for Garmin user: {email_masked}")
+            garth.login(self.email, self.password)
+            garth.save(self.session_path)
+            self.client = Garmin()
+            logger.info("Garmin Connect login successful via browser automation.")
+            
         except Exception as e:
             logger.error(f"Garmin Connect login failed: {e}", exc_info=True)
-            self.client = None # Ensure it is None if failed
-            # Do not raise here, allow get_daily_stats to handle graceful exit or retry
+            self.client = None
 
 
     def get_daily_stats(self):
@@ -194,5 +211,15 @@ class GarminSync:
                 logger.warning("Garmin library 'add_body_composition' method not found. Skipping weight upload.")
             except Exception as e:
                 logger.error(f"Failed to upload weight to Garmin: {e}")
+
+    def close(self):
+        """
+        Close the garth browser session.
+        """
+        try:
+            garth.close()
+            logger.info("Closed Garmin/Garth browser session.")
+        except Exception as e:
+            logger.error(f"Error closing Garth session: {e}")
 
 

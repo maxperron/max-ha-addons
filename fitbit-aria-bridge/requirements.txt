@@ -1,4 +1,6 @@
 garminconnect>=0.2.24
+garth @ git+https://github.com/matin/garth.git@revive
+camoufox[playwright]>=0.4
 
 gspread==6.0.0
 Flask==3.0.0

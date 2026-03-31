@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.85] - 2026-03-31
+### Fixed
+- **Revived Garmin Weight Sync**: Integrated the new browser-based automation from `garth` (PR #225) to bypass Garmin's legacy authentication issues.
+- **Session Persistence**: Added local session caching in `/data/garth_session` to minimize the need for browser-based logins and improve sync speed.
+- **Background Sync**: Re-enabled and stabilized the direct Fitbit Aria scale to Garmin synchronization in a thread-safe background process.
+
 ## [1.0.84] - 2026-03-29
 ### Changed
 - **Renamed** project from "AI Triathlon Coach" to "Fitbit Aria Bridge".
