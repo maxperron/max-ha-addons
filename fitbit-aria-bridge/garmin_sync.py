@@ -28,9 +28,8 @@ class GarminSync:
             if os.path.exists(self.session_path):
                 try:
                     garth.resume(self.session_path)
-                    self.client = Garmin()
-                    # Verify session by getting a simple profile (optional but recommended)
-                    self.client.get_full_name()
+                    self.client = Garmin(self.email, self.password)
+                    self.client.login() # Necessary to initialize library state
                     logger.info(f"Resumed existing Garmin session for {email_masked}")
                     return
                 except Exception as e:
@@ -40,7 +39,8 @@ class GarminSync:
             logger.info(f"Attempting new login for Garmin user: {email_masked}")
             garth.login(self.email, self.password)
             garth.save(self.session_path)
-            self.client = Garmin()
+            self.client = Garmin(self.email, self.password)
+            self.client.login() # Populate library methods/session
             logger.info("Garmin Connect login successful via browser automation.")
             
         except Exception as e:
@@ -207,10 +207,10 @@ class GarminSync:
                 self.client.add_body_composition(timestamp, weight=weight_kg)
                 logger.info(f"Uploaded weight {weight_kg}kg to Garmin at {timestamp}.")
 
-            except AttributeError:
-                logger.warning("Garmin library 'add_body_composition' method not found. Skipping weight upload.")
+            except AttributeError as e:
+                logger.error(f"Garmin library error (method likely missing or client state invalid): {e}")
             except Exception as e:
-                logger.error(f"Failed to upload weight to Garmin: {e}")
+                logger.error(f"Failed to upload weight to Garmin: {e}", exc_info=True)
 
     def close(self):
         """

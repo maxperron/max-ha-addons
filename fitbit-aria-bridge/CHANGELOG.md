@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.0.89] - 2026-04-01
+### Fixed
+- **Garmin Weight Sync**: Fixed an issue where weight uploads were being skipped due to `garminconnect` library not being fully initialized. Added explicit `api.login()` call on the library client to populate all methods (including `add_body_composition`).
+- **Logging**: Removed false-positive "Sync Successful" log in the background thread. Detailed success/failure is now handled by the sync module itself.
+
 ## [1.0.88] - 2026-03-31
 ### Fixed
 - **Playwright Dependencies**: Updated `Dockerfile` to install `firefox` system dependencies (`libgtk-3`, etc.). This resolves the `GTK-3.0` missing library error when launching Camoufox for Garmin login.

@@ -237,7 +237,6 @@ def aria_upload():
                                 # Use current timestamp
                                 timestamp = datetime.now().isoformat()
                                 gs.add_body_composition(w_kg, timestamp)
-                                logger.info(f"Background: Garmin Weight Sync Successful.")
                             else:
                                 logger.warning("Background: Garmin credentials missing, skipping sync.")
                         except Exception as bg_e:
