@@ -2,53 +2,16 @@ import garth
 import os
 from garminconnect import Garmin
 import logging
-import io
 from datetime import date, timedelta, datetime
 
 logger = logging.getLogger(__name__)
 
 class GarminSync:
 
-    @staticmethod
-    def _apply_global_garth_patch():
-        """
-        Monkey-patch garth.upload globally to handle bytes vs file objects.
-        Stable garminconnect 0.2.40 passes bytes, but latest garth (from git)
-        expects a file-like object with .read().
-        """
-        try:
-            # 1. Patch the global garth.upload function
-            original_upload = garth.upload
-
-            def patched_upload(file, *args, **kwargs):
-                if isinstance(file, (bytes, bytearray)):
-                    logger.debug("Global patch: wrapping raw bytes in io.BytesIO for garth.upload")
-                    file = io.BytesIO(file)
-                return original_upload(file, *args, **kwargs)
-
-            garth.upload = patched_upload
-
-            # 2. Also patch the GarthClient class method
-            if hasattr(garth, "client") and hasattr(garth.client, "GarthClient"):
-                original_client_upload = garth.client.GarthClient.upload
-
-                def patched_client_upload(self_inner, file, *args, **kwargs):
-                    if isinstance(file, (bytes, bytearray)):
-                        logger.debug("Global patch: wrapping raw bytes in io.BytesIO for GarthClient.upload")
-                        file = io.BytesIO(file)
-                    return original_client_upload(self_inner, file, *args, **kwargs)
-
-                garth.client.GarthClient.upload = patched_client_upload
-
-            logger.debug("Applied global monkey-patch to garth upload methods")
-        except Exception as e:
-            logger.error(f"Failed to apply global garth monkey-patch: {e}")
-
     def __init__(self, email, password, session_path="/data/garth_session"):
         self.email = email
         self.password = password
         self.session_path = session_path
-        GarminSync._apply_global_garth_patch()  # Apply globally before any login
         self.client = None
         self.login()
 
@@ -226,28 +189,22 @@ class GarminSync:
 
     def add_body_composition(self, weight_kg, timestamp=None):
         """
-        Uploads weight (kg) to Garmin Connect.
+        Uploads weight (kg) to Garmin Connect using add_weigh_in (JSON API).
+        Avoids add_body_composition which uploads a binary FIT file incompatible
+        with the browser-based garth transport.
         """
         if not self.client:
-             self.login()
-        
+            self.login()
+
         if self.client:
             try:
-                # library `add_body_composition` signature:
-                # add_body_composition(timestamp, weight, percent_fat=None, ...)
-                # Note: timestamp is FIRST argument.
-                
-                # If timestamp is None, use now?
-                # Library likely expects ISO string.
                 if not timestamp:
-                    from datetime import datetime
                     timestamp = datetime.now().isoformat()
-                
-                self.client.add_body_composition(timestamp, weight=weight_kg)
+
+                # add_weigh_in uses a simple JSON POST — no binary file upload needed.
+                self.client.add_weigh_in(weight_kg, unitKey="kg", timestamp=timestamp)
                 logger.info(f"Uploaded weight {weight_kg}kg to Garmin at {timestamp}.")
 
-            except AttributeError as e:
-                logger.error(f"Garmin library error (method likely missing or client state invalid): {e}")
             except Exception as e:
                 logger.error(f"Failed to upload weight to Garmin: {e}", exc_info=True)
 

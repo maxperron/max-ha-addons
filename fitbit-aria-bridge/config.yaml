@@ -1,5 +1,5 @@
 name: "Fitbit Aria Bridge"
-version: "1.0.91"
+version: "1.0.92"
 
 slug: "fitbit_aria_bridge"
 description: "Bridge for Fitbit Aria scale to Garmin Connect (via Fitbit proxy)."

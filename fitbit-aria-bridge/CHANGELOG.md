@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.92] - 2026-04-01
+### Fixed
+- **Garmin Weight Sync (Root Cause)**: Replaced `add_body_composition()` with `add_weigh_in()`. The former encodes weight into a binary FIT file and uploads it — a file-upload operation that is fundamentally incompatible with the browser-based `garth` transport (PR #225). The latter uses a simple JSON POST to the Garmin weight REST API, which works perfectly with browser-based authentication. All previous monkey-patch attempts were moot because the wrong method was being called.
+
 ## [1.0.91] - 2026-04-01
 ### Fixed
 - **Garmin Sync**: Corrected the `_apply_global_garth_patch` implementation — the method was accidentally placed outside the `GarminSync` class in v1.0.90. It is now a proper `@staticmethod` called at init time, ensuring the global patch is reliably applied before any upload attempt.
