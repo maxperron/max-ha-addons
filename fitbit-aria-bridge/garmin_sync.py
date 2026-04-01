@@ -8,10 +8,47 @@ from datetime import date, timedelta, datetime
 logger = logging.getLogger(__name__)
 
 class GarminSync:
+
+    @staticmethod
+    def _apply_global_garth_patch():
+        """
+        Monkey-patch garth.upload globally to handle bytes vs file objects.
+        Stable garminconnect 0.2.40 passes bytes, but latest garth (from git)
+        expects a file-like object with .read().
+        """
+        try:
+            # 1. Patch the global garth.upload function
+            original_upload = garth.upload
+
+            def patched_upload(file, *args, **kwargs):
+                if isinstance(file, (bytes, bytearray)):
+                    logger.debug("Global patch: wrapping raw bytes in io.BytesIO for garth.upload")
+                    file = io.BytesIO(file)
+                return original_upload(file, *args, **kwargs)
+
+            garth.upload = patched_upload
+
+            # 2. Also patch the GarthClient class method
+            if hasattr(garth, "client") and hasattr(garth.client, "GarthClient"):
+                original_client_upload = garth.client.GarthClient.upload
+
+                def patched_client_upload(self_inner, file, *args, **kwargs):
+                    if isinstance(file, (bytes, bytearray)):
+                        logger.debug("Global patch: wrapping raw bytes in io.BytesIO for GarthClient.upload")
+                        file = io.BytesIO(file)
+                    return original_client_upload(self_inner, file, *args, **kwargs)
+
+                garth.client.GarthClient.upload = patched_client_upload
+
+            logger.debug("Applied global monkey-patch to garth upload methods")
+        except Exception as e:
+            logger.error(f"Failed to apply global garth monkey-patch: {e}")
+
     def __init__(self, email, password, session_path="/data/garth_session"):
         self.email = email
         self.password = password
         self.session_path = session_path
+        GarminSync._apply_global_garth_patch()  # Apply globally before any login
         self.client = None
         self.login()
 
@@ -31,7 +68,6 @@ class GarminSync:
                     garth.resume(self.session_path)
                     self.client = Garmin(self.email, self.password)
                     self.client.login() # Necessary to initialize library state
-                    self._apply_garth_patch()
                     logger.info(f"Resumed existing Garmin session for {email_masked}")
                     return
                 except Exception as e:
@@ -43,32 +79,12 @@ class GarminSync:
             garth.save(self.session_path)
             self.client = Garmin(self.email, self.password)
             self.client.login() # Populate library methods/session
-            self._apply_garth_patch()
             logger.info("Garmin Connect login successful via browser automation.")
             
         except Exception as e:
             logger.error(f"Garmin Connect login failed: {e}", exc_info=True)
             self.client = None
 
-    def _apply_garth_patch(self):
-        """
-        Monkey-patch garth.upload to handle bytes vs file objects.
-        Stable garminconnect 0.2.40 passes bytes, but latest garth (from git)
-        expects a file-like object with .read().
-        """
-        if not self.client or not hasattr(self.client, "garth"):
-            return
-
-        original_upload = self.client.garth.upload
-
-        def patched_upload(file, *args, **kwargs):
-            if isinstance(file, bytes):
-                logger.debug("Monkey-patch: wrapping raw bytes in io.BytesIO for garth.upload")
-                file = io.BytesIO(file)
-            return original_upload(file, *args, **kwargs)
-
-        self.client.garth.upload = patched_upload
-        logger.debug("Applied monkey-patch to self.client.garth.upload")
 
 
     def get_daily_stats(self):

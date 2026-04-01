@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.91] - 2026-04-01
+### Fixed
+- **Garmin Sync**: Corrected the `_apply_global_garth_patch` implementation — the method was accidentally placed outside the `GarminSync` class in v1.0.90. It is now a proper `@staticmethod` called at init time, ensuring the global patch is reliably applied before any upload attempt.
+
 ## [1.0.90] - 2026-04-01
 ### Fixed
 - **Garmin Sync Compatibility**: Fixed `AttributeError: 'bytes' object has no attribute 'read'` by implementing a monkey-patch to handle raw `bytes` in the `garth.upload` method. This resolves a version mismatch between the stable `garminconnect` library and the latest `garth` development branch.
