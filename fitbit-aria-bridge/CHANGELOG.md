@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.90] - 2026-04-01
+### Fixed
+- **Garmin Sync Compatibility**: Fixed `AttributeError: 'bytes' object has no attribute 'read'` by implementing a monkey-patch to handle raw `bytes` in the `garth.upload` method. This resolves a version mismatch between the stable `garminconnect` library and the latest `garth` development branch.
+
 ## [1.0.89] - 2026-04-01
 ### Fixed
 - **Garmin Weight Sync**: Fixed an issue where weight uploads were being skipped due to `garminconnect` library not being fully initialized. Added explicit `api.login()` call on the library client to populate all methods (including `add_body_composition`).

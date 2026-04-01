@@ -2,6 +2,7 @@ import garth
 import os
 from garminconnect import Garmin
 import logging
+import io
 from datetime import date, timedelta, datetime
 
 logger = logging.getLogger(__name__)
@@ -30,6 +31,7 @@ class GarminSync:
                     garth.resume(self.session_path)
                     self.client = Garmin(self.email, self.password)
                     self.client.login() # Necessary to initialize library state
+                    self._apply_garth_patch()
                     logger.info(f"Resumed existing Garmin session for {email_masked}")
                     return
                 except Exception as e:
@@ -41,11 +43,32 @@ class GarminSync:
             garth.save(self.session_path)
             self.client = Garmin(self.email, self.password)
             self.client.login() # Populate library methods/session
+            self._apply_garth_patch()
             logger.info("Garmin Connect login successful via browser automation.")
             
         except Exception as e:
             logger.error(f"Garmin Connect login failed: {e}", exc_info=True)
             self.client = None
+
+    def _apply_garth_patch(self):
+        """
+        Monkey-patch garth.upload to handle bytes vs file objects.
+        Stable garminconnect 0.2.40 passes bytes, but latest garth (from git)
+        expects a file-like object with .read().
+        """
+        if not self.client or not hasattr(self.client, "garth"):
+            return
+
+        original_upload = self.client.garth.upload
+
+        def patched_upload(file, *args, **kwargs):
+            if isinstance(file, bytes):
+                logger.debug("Monkey-patch: wrapping raw bytes in io.BytesIO for garth.upload")
+                file = io.BytesIO(file)
+            return original_upload(file, *args, **kwargs)
+
+        self.client.garth.upload = patched_upload
+        logger.debug("Applied monkey-patch to self.client.garth.upload")
 
 
     def get_daily_stats(self):
