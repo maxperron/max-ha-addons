@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.93] - 2026-11-01
+### Added
+- **Weight Threshold Validation**: Added validation to prevent pushing weight measurements below 190 lbs to the Garmin API (configurable via `garmin_min_weight_lbs`, defaults to 190). All weights continue to be forwarded to Fitbit via the scale upload proxy.
+
 ## [1.0.92] - 2026-04-01
 ### Fixed
 - **Garmin Weight Sync (Root Cause)**: Replaced `add_body_composition()` with `add_weigh_in()`. The former encodes weight into a binary FIT file and uploads it — a file-upload operation that is fundamentally incompatible with the browser-based `garth` transport (PR #225). The latter uses a simple JSON POST to the Garmin weight REST API, which works perfectly with browser-based authentication. All previous monkey-patch attempts were moot because the wrong method was being called.

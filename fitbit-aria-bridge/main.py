@@ -184,6 +184,7 @@ def aria_upload():
                 # Use Little Endian <I
                 weight_grams = struct.unpack('<I', data_packet[54:58])[0]
                 weight_kg = round(weight_grams / 1000.0, 2)
+                weight_lbs = round(weight_kg * 2.20462, 2)
                 
                 # Attempt to identify User
                 user_id = request.args.get('userId') or request.args.get('user')
@@ -201,7 +202,7 @@ def aria_upload():
                      except:
                         pass
                 
-                logger.info(f"Parsed Weight: {weight_grams}g ({weight_kg}kg)")
+                logger.info(f"Parsed Weight: {weight_grams}g ({weight_kg}kg / {weight_lbs}lbs)")
                 logger.info(f"Parsing User ID... (Raw Int: {target_user_int}) -> (Computed ID: {user_id})")
                 
                 # Check User Filter
@@ -226,6 +227,24 @@ def aria_upload():
                         should_sync = False
                     else:
                         logger.info(f"User Filter Match: '{user_id}'. Proceeding with Garmin Sync.")
+
+                # Check Minimum Weight Filter (do not push to Garmin if below threshold, e.g. 190 lbs)
+                min_weight_lbs = config.get("garmin_min_weight_lbs", 190)
+                try:
+                    min_weight_lbs = float(min_weight_lbs) if min_weight_lbs is not None else 190.0
+                except (ValueError, TypeError):
+                    min_weight_lbs = 190.0
+
+                if should_sync and min_weight_lbs > 0:
+                    if weight_lbs < min_weight_lbs:
+                        logger.info(
+                            f"Weight Threshold: {weight_lbs}lbs ({weight_kg}kg) is below minimum of {min_weight_lbs}lbs. Skipping Garmin Sync."
+                        )
+                        should_sync = False
+                    else:
+                        logger.info(
+                            f"Weight Threshold: {weight_lbs}lbs ({weight_kg}kg) >= {min_weight_lbs}lbs. Proceeding with Garmin Sync."
+                        )
                 
                 # Sync to Garmin in Background Thread to prevent 504 Timeout on Scale
                 def sync_weight_background(w_kg, conf):
@@ -249,7 +268,9 @@ def aria_upload():
                     # Start the background thread
                     sync_thread = threading.Thread(target=sync_weight_background, args=(weight_kg, config))
                     sync_thread.start()
-                    logger.info(f"Started background thread for Garmin weight sync ({weight_kg}kg)")
+                    logger.info(f"Started background thread for Garmin weight sync ({weight_kg}kg / {weight_lbs}lbs)")
+                else:
+                    logger.info(f"Garmin Sync skipped for weight {weight_kg}kg ({weight_lbs}lbs).")
 
             except Exception as e:
                 logger.error(f"Error processing local data parsing: {e}")

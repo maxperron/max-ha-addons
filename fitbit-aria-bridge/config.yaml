@@ -1,5 +1,5 @@
 name: "Fitbit Aria Bridge"
-version: "1.0.92"
+version: "1.0.93"
 
 slug: "fitbit_aria_bridge"
 description: "Bridge for Fitbit Aria scale to Garmin Connect (via Fitbit proxy)."
@@ -24,6 +24,7 @@ options:
   google_sheet_id: ""
   sync_interval_minutes: 60
   garmin_user_filter: "Binary:3462330400"
+  garmin_min_weight_lbs: 190
 schema:
   garmin_username: str
   garmin_password: password
@@ -38,6 +39,7 @@ schema:
   google_sheet_id: str
   sync_interval_minutes: int
   garmin_user_filter: str
+  garmin_min_weight_lbs: float?
 arch:
   - aarch64
   - amd64

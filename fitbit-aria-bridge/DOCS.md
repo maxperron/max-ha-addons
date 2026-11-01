@@ -61,3 +61,11 @@ To sync nutrition data, simply provide your Cronometer login credentials. This a
 
 *   `cronometer_username`: Your email or username for Cronometer.
 *   `cronometer_password`: Your Cronometer password.
+
+## Garmin Configuration
+
+*   `garmin_username`: Your Garmin Connect account email.
+*   `garmin_password`: Your Garmin Connect account password.
+*   `garmin_user_filter`: (Optional) Match specific user ID from the Aria scale payload (e.g. `Binary:3462330400`).
+*   `garmin_min_weight_lbs`: (Optional, default `190`) Minimum weight in lbs required to sync to Garmin Connect. Weights below this value will not be pushed to Garmin, but are still proxied to Fitbit. Set to `0` to disable this check.
+
