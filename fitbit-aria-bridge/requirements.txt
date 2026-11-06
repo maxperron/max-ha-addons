@@ -1,4 +1,4 @@
-garth @ git+https://github.com/nrvim/garth.git@feat/camoufox-browser-transport
+garth @ git+https://github.com/matin/garth.git@refs/pull/225/head
 camoufox[playwright]>=0.4
 
 gspread==6.0.0

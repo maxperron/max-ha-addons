@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.94] - 2026-11-06
+### Fixed
+- **Docker Build Dependency**: Pointed `garth` dependency to the preserved PR #225 ref on upstream `matin/garth` (`git+https://github.com/matin/garth.git@refs/pull/225/head`) after the feature branch was removed from the personal fork.
+
 ## [1.0.93] - 2026-11-01
 ### Added
 - **Weight Threshold Validation**: Added validation to prevent pushing weight measurements below 190 lbs to the Garmin API (configurable via `garmin_min_weight_lbs`, defaults to 190). All weights continue to be forwarded to Fitbit via the scale upload proxy.
